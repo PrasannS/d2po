@@ -1,55 +1,31 @@
 # SH File for running the whole shebang, multiple jobs
 
 export CFG=src/configs/ppo_2gpu.yaml
-export STEPS=5
+export STEPS=10
 export LABTHRESH=0.3
 export SUPDATES=10000000
 export SEED=0
 export KEEPLONG=0
 export MLEN=50
-export BASEMODEL="facebook/opt-125m"
 
-# RANDOM SUBSAMPLING RUN 
+defaults() {
+    export BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
+    export REDOBATCH=1
+    export LABRATIO=0.25
+    export ATYPE="rand"
+    export ULR=1e-4
+}
 
-export CUDA_VISIBLE_DEVICES=2
-# noupdateapi "bagofwords" "bowsynth50knozeros" "expbow50" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "expbow50" "rand_subsamp" 5001 & 
-# Other commands
-export CUDA_VISIBLE_DEVICES=3,4
-sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp"
-jobs
-pkill -f "rand_subsamp"
-jobs
-
-# RANDOM SUBSAMPLING RUN from base (not using DPO)
-
-export CUDA_VISIBLE_DEVICES=2
-# noupdateapi "bagofwords" "bowsynth50knozeros" "expbow50" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "expbow50" "rand_subsamp_obase" 5001 & 
-# Other commands
-export CUDA_VISIBLE_DEVICES=3,4
-sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_obase"
-jobs
-pkill -f "rand_subsamp_obase"
-jobs
-
-# RAND SUBSAMPLE WITH LOWER LR
-
-export CUDA_VISIBLE_DEVICES=2
-# noupdateapi "bagofwords" "bowsynth50knozeros" "expbow50" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "expbow50" "rand_subsamp_lowlr" 5001 & 
-# Other commands
-export CUDA_VISIBLE_DEVICES=3,4
-sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_lowlr"
-jobs
-pkill -f "rand_subsamp_lowlr"
-jobs
+# NOTE SMALL CHANCE OF RACE CONDITIONS, WATCH OUT
 
 # CONF SUB_SAMPLING
 
+defaults
+export ATYPE="conf"
+
 export CUDA_VISIBLE_DEVICES=2
-# noupdateapi "bagofwords" "bowsynth50knozeros" "expbow50" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "expbow50" "conf_subsamp" 5001 & 
+# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "conf_subsamp" 5001 & 
 # Other commands
 export CUDA_VISIBLE_DEVICES=3,4
 sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "conf_subsamp"
@@ -57,51 +33,46 @@ jobs
 pkill -f "conf_subsamp"
 jobs
 
-# RAND SUB_SAMP + REPLAY (5 batch)
 
-export CUDA_VISIBLE_DEVICES=5
-# noupdateapi "bagofwords" "bowsynth50knozeros" "expbow50" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "expbow50" "rand_subsamp_replay5" 5001 & 
+# RANDOM SUBSAMPLING RUN 
+defaults
+export CUDA_VISIBLE_DEVICES=2
+# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "rand_subsamp_only" 5001 & 
 # Other commands
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_replay5"
+export CUDA_VISIBLE_DEVICES=3,4
+sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_only"
 jobs
-pkill -f "rand_subsamp"
+pkill -f "rand_subsamp_only"
 jobs
 
+# RANDOM SUBSAMPLING RUN from base (not using DPO)
+defaults
+export BASEMODEL="facebook/opt-125m"
 
-# RAND SUB_SAMP + REPLAY (15 batch)
-
-export CUDA_VISIBLE_DEVICES=5
-# noupdateapi "bagofwords" "bowsynth50knozeros" "expbow50" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "expbow50" "rand_subsamp_replay15" 5001 & 
+export CUDA_VISIBLE_DEVICES=2
+# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "rand_subsamp_obase" 5001 & 
 # Other commands
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_replay15"
+export CUDA_VISIBLE_DEVICES=3,4
+sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_obase"
 jobs
-pkill -f "rand_subsamp"
+pkill -f "rand_subsamp_obase"
 jobs
 
-# RAND SUB_SAMP + IN-DOMAIN PROMPT DATA (maybe with expbow)
 
-export CUDA_VISIBLE_DEVICES=5
-# noupdateapi "bagofwords" "bowsynth50knozeros" "expbow50" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "expbow50" "rand_subsamp_indomain" 5001 & 
+# RAND SUBSAMPLE WITH LOWER LR
+defaults
+export ULR=3e-5
+
+export CUDA_VISIBLE_DEVICES=2
+# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "rand_subsamp_lowlr" 5001 & 
 # Other commands
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_indomain"
+export CUDA_VISIBLE_DEVICES=3,4
+sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_lowlr"
 jobs
-pkill -f "rand_subsamp"
+pkill -f "rand_subsamp_lowlr"
 jobs
 
-# BEST TECHNIQUE (ALL IN ONE)
 
-export CUDA_VISIBLE_DEVICES=5
-# noupdateapi "bagofwords" "bowsynth50knozeros" "expbow50" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "expbow50" "conf_all" 5001 & 
-# Other commands
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "conf_all"
-jobs
-pkill -f "conf_all"
-jobs

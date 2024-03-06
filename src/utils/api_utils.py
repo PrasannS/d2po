@@ -17,7 +17,7 @@ def get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script
         inds = list(range(0, len(rewards), 2))
         # can use either random-based or slightly more complex confidence thing for selecting examples to use
         if script_args.relab_criteria=="conf":
-            diffs = list([abs(rewards[i]-rewards[i+1]) for i in range(0, len(rewards), 2)])
+            diffs = list([abs(float(rewards[i]-rewards[i+1])) for i in range(0, len(rewards), 2)])
             inds = list([inds[i] for i in np.argsort(diffs)])
         elif "rand" in script_args.relab_criteria:
             random.shuffle(inds)

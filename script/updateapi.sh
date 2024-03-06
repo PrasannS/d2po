@@ -20,12 +20,15 @@ python -u src/rmapi.py \
     --reward_model_name=$REWARD \
     --save_freq=50 \
     --max_length=256 --batch_size=16 \
-    --seed=0 --learning_rate=5e-5 \
+    --seed=0 --learning_rate=$ULR \
     --trainable --goldreward="function${1}" \
     --stopupdates=$SUPDATES \
     --output_dir="outputs/checkpoints/${1}/dynarm_${4}/" \
     --logfile="outputs/results/dynarmlogs/${1}/${3}_${4}.jsonl" \
     --port=${5} \
     --labelthresh=$LABTHRESH \
-    --callratio=3 \
+    --callratio=1 \
+    --redo_batches=$REDOBATCH \
+    --relab_criteria=$ATYPE \
+    --relabel_ratio=$LABRATIO \
     --tracking > "outputs/logs/api/${1}_${4}.out"

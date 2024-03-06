@@ -46,7 +46,7 @@ def reuse_batchdata(ndiff, tokenizer, batch, metrics, readd_inds, script_args, c
         tk = tokenizer.decode(batch["input_ids_k"][i], skip_special_tokens=True)
         # second part of if is so we don't keep re-using same stuff in the generic baseline
         # if (ndiff[i]<(script_args.labelthresh*metrics['threshsum'])) and (script_args.labelthresh<1): 
-        if metrics['reuses'][tj+tk]<script_args.reuse_batches:
+        if metrics['reuses'][tj+tk]<script_args.redo_batches:
             readd_inds.append(cind+i)
             metrics['reuses'][tj+tk]+=1
             # TODO track this thing's lifecycle
