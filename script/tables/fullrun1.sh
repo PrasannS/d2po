@@ -1,7 +1,7 @@
 # SH File for running the whole shebang, multiple jobs
 
 export CFG=src/configs/ppo_2gpu.yaml
-export STEPS=10
+export STEPS=2000
 export LABTHRESH=0.3
 export SUPDATES=10000000
 export SEED=0

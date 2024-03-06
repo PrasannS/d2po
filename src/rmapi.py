@@ -134,7 +134,7 @@ def train():
             print("trainheur")
             trainheuristic_data(metrics, tokenizer, script_args, reward_model.device)
         
-        if script_args.tracking or script_args.trainheur:
+        if (script_args.tracking or script_args.trainheur) and (len(metrics['extradata'])>0):
             # take random data points from what we've been messing with
             random.shuffle(metrics['extradata'])
             # newdata = metrics['extradata'][script_args.batch_size*script_args.redo_batches:]
