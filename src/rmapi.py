@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from transformers import AdamW, AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import random
 # GENERAL CODE FOR RLHF TRAINING ON OUR DIFFERENT SETTINGS
 
@@ -10,6 +10,7 @@ from trl import set_seed
 from contextlib import nullcontext
 from torch.utils.data import DataLoader
 from datasets import Dataset
+from statistics import mean
 
 
 from utils.rl_utils import (
@@ -72,6 +73,7 @@ def train():
                 rewards = reward_model(input_ids=inps.input_ids, attention_mask=inps.attention_mask)[0]
                 scores.extend(rewards.detach().squeeze(-1).tolist())
             
+            
             loss = 0 
             print("call count is ", metrics['call_count'])
             
@@ -101,7 +103,7 @@ def train():
                 loss = loss + tmploss
                 get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script_args, i, metrics)
                 # external method call, note that this is important for preparing data with some methods
-            else:
+            if (metrics['call_count']%script_args.oldratio)==0:
                 print("old data update")
                 try:
                     inputs = next(loaddata)
@@ -114,12 +116,8 @@ def train():
                 rdiff = rewards_j - rewards_k
                 
                 loss = -nn.functional.logsigmoid(rdiff).mean()
-                rmean = rdiff.mean().detach()
-                
-                # NOTE do a sort of weighted value function thing here to keep emphasis on recent stuff
-                metrics['threshsum'] = (script_args.lmb*metrics['threshsum'] + rmean)/(1+script_args.lmb)
-                
-                # we're doing a standard preference update w.r.t the original dataset
+
+            # we're doing a standard preference update w.r.t the original dataset
             if loss!=0 and script_args.noupdates==False:
                 print("replayloss ", float(loss.detach()))
                 optimizer.zero_grad()
@@ -128,6 +126,10 @@ def train():
                 optimizer.step()
                 print(("prompt var step" if "indiv" in script_args.diffunct=='indiv' else "variance step") if varupdata else "retrain step")
         
+        # NOTE got rid of weighted value function thing
+        metrics['threshsum'].append(mean([abs(scores[i]-scores[i+1]) for i in range(0, len(scores), 2)]))
+        metrics['threshsum'] = metrics['threshsum'][-100:] # HACK hardcoded to 100 for now
+            
         if script_args.trainheur:
             print("trainheur")
             trainheuristic_data(metrics, tokenizer, script_args, reward_model.device)
@@ -136,8 +138,9 @@ def train():
             # take random data points from what we've been messing with
             random.shuffle(metrics['extradata'])
             # newdata = metrics['extradata'][script_args.batch_size*script_args.redo_batches:]
-            tmpdset = Dataset.from_list(metrics['extradata'][:script_args.batch_size*script_args.redo_batches])
-            tmpdset = DataLoader(tmpdset, batch_size=script_args.batch_size, shuffle=False, collate_fn=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length))
+            tmpdset = Dataset.from_list(metrics['extradata'][:script_args.batch_size*script_args.redo_batches]) # HACK this thing is redundant somehow
+            # NOTE kicking shuffling back in for stability
+            tmpdset = DataLoader(tmpdset, batch_size=script_args.batch_size, shuffle=True, collate_fn=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length))
             readd_inds = []
             cind = 0
             # do the whole extra adding thing
@@ -215,7 +218,7 @@ if __name__ == '__main__':
 
     tokenizer.pad_token = tokenizer.eos_token
     
-    metrics = {'call_count':0, 'label_count':0, 'all_texts':[], 'threshsum':0, 'extradata':[], 'logdata':[], 'reuses':{}}
+    metrics = {'call_count':0, 'label_count':0, 'all_texts':[], 'threshsum':[], 'extradata':[], 'logdata':[], 'reuses':{}}
 
     print("size of tokd thing, ", tokenizer("hi there", padding=True, truncation=True, return_tensors='pt').input_ids.shape)
     

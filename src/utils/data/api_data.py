@@ -45,15 +45,17 @@ def reuse_batchdata(ndiff, tokenizer, batch, metrics, readd_inds, script_args, c
         tj = tokenizer.decode(batch["input_ids_j"][i], skip_special_tokens=True)
         tk = tokenizer.decode(batch["input_ids_k"][i], skip_special_tokens=True)
         # second part of if is so we don't keep re-using same stuff in the generic baseline
-        if (ndiff[i]<(script_args.labelthresh*metrics['threshsum'])) and (script_args.labelthresh<1): 
+        # if (ndiff[i]<(script_args.labelthresh*metrics['threshsum'])) and (script_args.labelthresh<1): 
+        if metrics['reuses'][tj+tk]<script_args.reuse_batches:
             readd_inds.append(cind+i)
             metrics['reuses'][tj+tk]+=1
+            # TODO track this thing's lifecycle
         else: 
             tmp = {
                 'texts':[tj, tk],
                 'reuses':metrics['reuses'][tj+tk],
                 'rewards':[float(rewards_j[i].detach()),float(rewards_k[i].detach())],
-                'thresh':float(script_args.labelthresh*metrics['threshsum']), 
+                # 'thresh':float(script_args.labelthresh*metrics['threshsum']), 
                 'step':metrics['call_count'],
             }
             append_dict_to_jsonl(tmp, script_args.logfile)

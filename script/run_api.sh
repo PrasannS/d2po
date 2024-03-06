@@ -32,7 +32,7 @@ noupdateapi() {
         --tracking 
 }
 
-LABTHRESH=0.3
+# LABTHRESH=0.5
 SUPDATES=10000000
 
 export CUDA_VISIBLE_DEVICES=1

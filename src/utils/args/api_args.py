@@ -34,13 +34,18 @@ class APIArguments:
        metadata={"help": "whether to omit outputs that don't fit in length context or not"},
     )
     oldupdates: Optional[bool] = field(default=False, metadata={"help": "use experience replay from initial distribution"})
-    relabel_ratio: Optional[float] = field(default=0, metadata={"help": "what ratio (different criterion) of new gold outputs to collect"})
+    
     labelthresh: Optional[float] = field(default=0.3, metadata={"help": "what ratio based on 'normal' batch to use as selection criteria"})
+    
     relab_criteria: Optional[str] = field(default="conf", metadata={"help": "what criteria [conf, random] to use for relabeling set"})
+    relabel_ratio: Optional[float] = field(default=0, metadata={"help": "what ratio (different criterion) of new gold outputs to collect"})
+    
     port: Optional[int] = field(default=5000, metadata={"help": "the port"})
     stopupdates: Optional[int] = field(default=100000, metadata={"help": "how many gradient updates with gold relabels after we stop performing updates"})
     lmb: Optional[float] = field(default=0.9, metadata={"help": "for thresholding active-learning, how much to go off of recent stuff vs earlier"})
+    
     redo_batches: Optional[int] = field(default=5, metadata={"help": "for heuristic thing, how many batches to take from prior steps?"})
+    
     callratio: Optional[int] = field(default=1, metadata={"help": "how many steps (proccesses count separately) to call update function"})
-    oldratio: Optional[int] = field(default=1, metadata={"help": "how many steps (proccesses count separately) to do RM updates w.r.t original data"})
+    oldratio: Optional[int] = field(default=100000, metadata={"help": "how many steps (proccesses count separately) to do RM updates w.r.t original data"})
     heursteps: Optional[int] = field(default=50, metadata={"help": "how many steps to use as gap for heuristic things"})
