@@ -80,6 +80,9 @@ else:
 if ("math" in script_args.reward_model_name) and ("function" in script_args.reward_model_name): 
     print("beware, using math format")
     rmformat = anscat
+# if ("distil" in script_args.reward_model_name) and ("function" in script_args.reward_model_name): 
+#     print("beware, using concat format")
+#     rmformat = anscat
 print(dataset[0])
 
 # We then build the PPOTrainer, passing the model, the reference model, the tokenizer

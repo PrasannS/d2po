@@ -103,7 +103,7 @@ def train():
                 loss = loss + tmploss
                 get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script_args, i, metrics)
                 # external method call, note that this is important for preparing data with some methods
-            if (metrics['call_count']%script_args.oldratio)==0:
+            if ((metrics['call_count']+1)%script_args.oldratio)==0:
                 print("old data update")
                 try:
                     inputs = next(loaddata)
@@ -191,25 +191,32 @@ if __name__ == '__main__':
 
     set_seed(script_args.seed)
     
+    metrics = {'call_count':0, 'label_count':0, 'all_texts':[], 'threshsum':[], 'extradata':[], 'logdata':[], 'reuses':{}}
+
+    
+    print("goldreward is ", script_args.goldreward)
     if script_args.trainable:
         tokenizer, reward_model = load_models(script_args, "train")
         optimizer = torch.optim.AdamW(reward_model.parameters(), lr=script_args.learning_rate)
         # get the data so that we can update things continually
-        train_dataset, evald = load_manual(script_args.dataset_name, "")
-        train_dataset = train_dataset.shuffle(seed=100)
-        train_dataset = train_dataset.map(add_row_index, with_indices=True)
-        evald = evald.map(add_row_index, with_indices=True)
-        train_dataset, _ = tokenize_dset(train_dataset, evald, script_args, tokenizer)
-        print("updated length is ", len(train_dataset))
-        train_dataloader = DataLoader(train_dataset, batch_size=script_args.batch_size, shuffle=True, collate_fn=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length))
-        print("total batches is", len(train_dataloader))
-        loaddata = iter(train_dataloader)
+        if len(script_args.dataset_name)>0 and script_args.dataset_name[-1]!="/":
+            train_dataset, evald = load_manual(script_args.dataset_name, "")
+            train_dataset = train_dataset.shuffle(seed=100)
+            train_dataset = train_dataset.map(add_row_index, with_indices=True)
+            evald = evald.map(add_row_index, with_indices=True)
+            train_dataset, _ = tokenize_dset(train_dataset, evald, script_args, tokenizer)
+            print("updated length is ", len(train_dataset))
+            train_dataloader = DataLoader(train_dataset, batch_size=script_args.batch_size, shuffle=True, collate_fn=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length))
+            print("total batches is", len(train_dataloader))
+            loaddata = iter(train_dataloader)
         if "contrastivedistill" in script_args.goldreward:
             print("loading the RM")
-            rw.likemod = AutoModelForCausalLM.from_pretrained("facebook/opt-1.3b", device_map=0, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2").eval()
-            rw.liketok = AutoTokenizer.from_pretrained("facebook/opt-1.3b")
-            rw.slikemod = AutoModelForCausalLM.from_pretrained("facebook/opt-125m", device_map=0, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2").eval()
-            rw.sliketok = AutoTokenizer.from_pretrained("facebook/opt-125m")
+            metrics['contdist'] = [
+                AutoModelForCausalLM.from_pretrained("facebook/opt-1.3b", device_map=0, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2").eval(),
+                AutoTokenizer.from_pretrained("facebook/opt-1.3b"),
+                AutoModelForCausalLM.from_pretrained("facebook/opt-125m", device_map=0, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2").eval(),
+                AutoTokenizer.from_pretrained("facebook/opt-125m")
+            ]        
         if script_args.noupdates:
             reward_model.eval()
     else:
@@ -218,7 +225,6 @@ if __name__ == '__main__':
 
     tokenizer.pad_token = tokenizer.eos_token
     
-    metrics = {'call_count':0, 'label_count':0, 'all_texts':[], 'threshsum':[], 'extradata':[], 'logdata':[], 'reuses':{}}
 
     print("size of tokd thing, ", tokenizer("hi there", padding=True, truncation=True, return_tensors='pt').input_ids.shape)
     

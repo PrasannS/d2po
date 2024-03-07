@@ -32,8 +32,8 @@ accelerate launch --multi_gpu --config_file=$CFG --main_process_port=${4} \
     --reward_model_name=$REWARD \
     --adafactor=False \
     --save_freq=25 \
-    --max_length=$MLEN --batch_size=32 \
-    --mini_batch_size=32 \
+    --max_length=$MLEN --batch_size=$DPOBATCHSIZE \
+    --mini_batch_size=$DPOBATCHSIZE \
     --gradient_accumulation_steps=1 \
     --ppo_epochs=1 --seed=$SEED --learning_rate=5e-5 \
     --early_stopping=False --output_dir=outputs/checkpoints/${1}/ppo_${5} \

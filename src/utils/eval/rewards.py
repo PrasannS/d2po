@@ -134,9 +134,10 @@ def probcompute(text, tok, mod):
 
 def computelike(input_texts, lt, lm, slt, slm, process=False, bsize=32, pbar=False):
     scos = []
-    if process:
+    if "\n\nAnswer:" in input_texts[0]:
+        print('clean')
         # global liketok, likemod, slikemod, sliketok
-        input_texts = [it.replace("Answer:", "").replace("\n", "").replace("Question: ", "") for it in input_texts]
+        input_texts = [it.replace("\n\nAnswer: ", "").replace("Question: ", "") for it in input_texts]
     # TODO sanity check the input format of this
     itrange = range(0, len(input_texts), bsize)
     if pbar:

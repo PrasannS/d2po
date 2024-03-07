@@ -1,4 +1,5 @@
 from utils.eval.rewards import get_synth_rewards
+import utils.eval.rewards as rw
 from utils.data.dataproc import append_dict_to_jsonl
 import numpy as np
 import random
@@ -9,6 +10,11 @@ Given a set of rewards, / inputs, score everything with the gold function, updat
 TODO clean up call code and expand the functionality a bit
 """
 def get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script_args, i, metrics):
+    if "contdist" in metrics.keys():
+        rw.likemod = metrics['contdist'][0]
+        rw.liketok = metrics['contdist'][1]
+        rw.slikemod = metrics['contdist'][2]
+        rw.sliketok = metrics['contdist'][3]
     allngs = []
     acc = 0
     totnew = 0
@@ -19,8 +25,10 @@ def get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script
         if script_args.relab_criteria=="conf":
             diffs = list([abs(float(rewards[i]-rewards[i+1])) for i in range(0, len(rewards), 2)])
             inds = list([inds[i] for i in np.argsort(diffs)])
+            print("conf")
         elif "rand" in script_args.relab_criteria:
             random.shuffle(inds)
+            print("rand")
         inds = inds[:int(len(inds)*script_args.relabel_ratio)]
         
     for ind in range(0, len(rewards), 2):

@@ -47,5 +47,5 @@ class APIArguments:
     redo_batches: Optional[int] = field(default=5, metadata={"help": "for heuristic thing, how many batches to take from prior steps?"})
     
     callratio: Optional[int] = field(default=1, metadata={"help": "how many steps (proccesses count separately) to call update function"})
-    oldratio: Optional[int] = field(default=100000, metadata={"help": "how many steps (proccesses count separately) to do RM updates w.r.t original data"})
+    oldratio: Optional[int] = field(default=1000000, metadata={"help": "how many steps (proccesses count separately) to do RM updates w.r.t original data"})
     heursteps: Optional[int] = field(default=50, metadata={"help": "how many steps to use as gap for heuristic things"})
