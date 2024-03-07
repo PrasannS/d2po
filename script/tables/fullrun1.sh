@@ -46,33 +46,33 @@ jobs
 pkill -f "rand_subsamp_only"
 jobs
 
-# RANDOM SUBSAMPLING RUN from base (not using DPO)
-defaults
-export BASEMODEL="facebook/opt-125m"
+# # RANDOM SUBSAMPLING RUN from base (not using DPO)
+# defaults
+# export BASEMODEL="facebook/opt-125m"
 
-export CUDA_VISIBLE_DEVICES=2
-# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "rand_subsamp_obase" 5001 & 
-# Other commands
-export CUDA_VISIBLE_DEVICES=3,4
-sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_obase"
-jobs
-pkill -f "rand_subsamp_obase"
-jobs
+# export CUDA_VISIBLE_DEVICES=2
+# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "rand_subsamp_obase" 5001 & 
+# # Other commands
+# export CUDA_VISIBLE_DEVICES=3,4
+# sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_obase"
+# jobs
+# pkill -f "rand_subsamp_obase"
+# jobs
 
 
-# RAND SUBSAMPLE WITH LOWER LR
-defaults
-export ULR=3e-5
+# # RAND SUBSAMPLE WITH LOWER LR
+# defaults
+# export ULR=3e-5
 
-export CUDA_VISIBLE_DEVICES=2
-# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "rand_subsamp_lowlr" 5001 & 
-# Other commands
-export CUDA_VISIBLE_DEVICES=3,4
-sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_lowlr"
-jobs
-pkill -f "rand_subsamp_lowlr"
-jobs
+# export CUDA_VISIBLE_DEVICES=2
+# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "rand_subsamp_lowlr" 5001 & 
+# # Other commands
+# export CUDA_VISIBLE_DEVICES=3,4
+# sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5001/train" 29516 "rand_subsamp_lowlr"
+# jobs
+# pkill -f "rand_subsamp_lowlr"
+# jobs
 
 

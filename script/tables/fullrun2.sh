@@ -62,15 +62,15 @@ jobs
 pkill -f "rand_subsamp_replay15"
 jobs
 
-# RAND SUB_SAMP + IN-DOMAIN PROMPT DATA (maybe with expbow)
-defaults
+# # RAND SUB_SAMP + IN-DOMAIN PROMPT DATA (maybe with expbow)
+# defaults
 
-export CUDA_VISIBLE_DEVICES=5
-# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "rand_subsamp_indomain" 5002 & 
-# Other commands
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "bagofwords" "outputs/data/bagofwords/bowsynth50knozeros" "http://127.0.0.1:5002/train" 29517 "rand_subsamp_indomain"
-jobs
-pkill -f "rand_subsamp_indomain"
-jobs
+# export CUDA_VISIBLE_DEVICES=5
+# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/updateapi.sh "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "rand_subsamp_indomain" 5002 & 
+# # Other commands
+# export CUDA_VISIBLE_DEVICES=6,7
+# sh script/dpoplus_script.sh "bagofwords" "outputs/data/bagofwords/bowsynth50knozeros" "http://127.0.0.1:5002/train" 29517 "rand_subsamp_indomain"
+# jobs
+# pkill -f "rand_subsamp_indomain"
+# jobs
