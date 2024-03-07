@@ -12,7 +12,6 @@ else
     REWARD="outputs/models/rewards/${1}/${3}_rm"
 fi
 
-
 if contains $5 "normppo"; then 
     echo "using normal PPO objective"
     KLP="kl"
@@ -33,7 +32,7 @@ accelerate launch --multi_gpu --config_file=$CFG --main_process_port=${4} \
     --adafactor=False \
     --save_freq=25 \
     --max_length=$MLEN --batch_size=$DPOBATCHSIZE \
-    --mini_batch_size=$DPOBATCHSIZE \
+    --mini_batch_size=$MBSIZE \
     --gradient_accumulation_steps=1 \
     --ppo_epochs=1 --seed=$SEED --learning_rate=5e-5 \
     --early_stopping=False --output_dir=outputs/checkpoints/${1}/ppo_${5} \

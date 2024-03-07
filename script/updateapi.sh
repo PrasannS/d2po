@@ -19,7 +19,7 @@ python -u src/rmapi.py \
     --dataset_name="outputs/data/${1}/${2}" \
     --reward_model_name=$REWARD \
     --save_freq=50 \
-    --max_length=256 --batch_size=16 \
+    --max_length=256 --batch_size=$APBSIZE \
     --seed=0 --learning_rate=$ULR \
     --trainable --goldreward="function${1}" \
     --stopupdates=$SUPDATES \
@@ -27,7 +27,7 @@ python -u src/rmapi.py \
     --logfile="outputs/results/dynarmlogs/${1}/${3}_${4}.jsonl" \
     --port=${5} \
     --labelthresh=$LABTHRESH \
-    --callratio=1 \
+    --callratio=$CRATIO \
     --redo_batches=$REDOBATCH \
     --relab_criteria=$ATYPE \
     --relabel_ratio=$LABRATIO \
