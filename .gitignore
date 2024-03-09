@@ -3,3 +3,7 @@ wandb/
 *.out
 *.pyc
 *.lock
+*/apikey.py
+*apikey*
+*/.ipynb_checkpoints
+*.jsonl

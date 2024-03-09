@@ -13,6 +13,8 @@ from tqdm import tqdm
 import torch
 import re
 from nltk.metrics.distance import edit_distance
+from utils.eval.annotate_preference import annotate
+from utils.data.dataproc import append_dict_to_jsonl
 from statistics import mean
 from rlhfutils.modeling_override import set_forward
 
@@ -28,7 +30,7 @@ def get_synth_rewards(text_list, rmname, metadata=None):
         'reversebow':revbowfunct, 'contpos':contnumpos, 'allobjs':allobjs,
         'nounvstoks':nounvtoks, 'tokdense':tokdensefunct, "einstein":einstein_all, 
         'omission':omitall, 'readinggrade':readall, 'contrastivedistill':contdistill,
-        'math':allmathpreds
+        'math':allmathpreds, 'ultrafeedbackgold': ultrafeedback_gold
     }
     # TODO big refactor for cleanliness, will need to sanity check effects
     inps = tuple([text_list])
@@ -49,6 +51,49 @@ def get_synth_rewards(text_list, rmname, metadata=None):
     if "exponent" in rmname:
         scores = [s + (1.2**s) for s in scores]
         
+    return scores
+
+# given a list of texts, score using UF gold annotation scheme (modified to be the 2-thing version of this)
+def ultrafeedback_gold(text_list, savef="test/allannots.jsonl"):
+    inputs = []
+    # make list of data based on things, carry out necessary checks
+    for i in range(0, len(text_list), 2):
+        ps = [t.replace("Question: ", "").strip() for t in text_list[i:i+2]]
+        qs = [t.split("\n\nAnswer:")[0] for t in ps]
+        ans = [t.split("\n\nAnswer:")[1] for t in ps]
+        # outputs need to be matching for prompt to work
+        assert qs[0]==qs[1] 
+        tmp = {'completions':[{'response':a} for a in ans]}
+        tmp['instruction'] = qs[0]
+        inputs.append(tmp)
+    
+    # do the annotations
+    finaldata = []
+    for inp in tqdm(inputs):
+        annot = annotate(inp)
+        append_dict_to_jsonl(annot, savef)
+        finaldata.append(annot)
+    
+    crits = ['instruction_following', 'helpfulness']
+    scores = []
+    for f in finaldata:
+        anns = f['completions']
+        assert len(anns) == 2
+        # each thing should add 2 scores
+        for an in anns:
+            print(an)
+            score = 0
+            tot = 0
+            for c in crits: 
+                try:
+                    score +=float(an['annotations'][c][0]['Rating'])
+                    tot+=1
+                except:
+                    print("missing rating for ", c)
+            if tot==0:
+                scores.append(1)
+            else:
+                scores.append(score/tot)
     return scores
 
 def allmathpreds(text_list, scale=5, log=False):
