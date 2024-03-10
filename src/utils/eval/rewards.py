@@ -53,6 +53,30 @@ def get_synth_rewards(text_list, rmname, metadata=None):
         
     return scores
 
+# TODO refactor this into below method for cleanliness
+def annot_proc(row, log=False):
+    crits = ['instruction_following', 'helpfulness']
+    anns = row['completions']
+    # assert len(anns) == 2
+    scores = []
+    # each thing should add 2 scores
+    for an in anns:
+        if log:
+            print(an)
+        score = 0
+        tot = 0
+        for c in crits: 
+            try:
+                score +=float(an['annotations'][c][0]['Rating'])
+                tot+=1
+            except:
+                print("missing rating for ", c)
+        if tot==0:
+            scores.append(1)
+        else:
+            scores.append(score/tot)
+    return scores
+
 # given a list of texts, score using UF gold annotation scheme (modified to be the 2-thing version of this)
 def ultrafeedback_gold(text_list, savef="test/allannots.jsonl"):
     inputs = []
