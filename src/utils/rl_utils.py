@@ -591,18 +591,23 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
             print("Bonuses: ", bonuses)
             # TODO need to tune the scaling stuff a little bit
             rewards = [rewards[i]+bonuses[i] for i in range(len(rewards))]
-                
-        stats = ppo_trainer.step(question_tensors, response_tensors, rewards, kl_mask=kl_mask)
-        if script_args.save_rollouts: 
-            # NOTE removing stats so that log_dicts aren't taking a ton of space
-            roll_dict['step'] = epoch
-            rollfile = script_args.output_dir.replace("checkpoints/", "results/rollouts/")
-            while rollfile[-1]=='/':
-                rollfile = rollfile[:-1]
-            rollfile = rollfile+".jsonl"
-            append_dict_to_jsonl(roll_dict, rollfile)
+        
+        try:
+            stats = ppo_trainer.step(question_tensors, response_tensors, rewards, kl_mask=kl_mask)
             
-        ppo_trainer.log_stats(stats, batch, logrewards)
-        if script_args.save_freq and epoch and epoch % script_args.save_freq == 0:
-            create_missing_folders_for_file(script_args.output_dir + f"step_{epoch}"+"/")
-            ppo_trainer.save_pretrained(script_args.output_dir + f"step_{epoch}")
+            if script_args.save_rollouts: 
+                # NOTE removing stats so that log_dicts aren't taking a ton of space
+                roll_dict['step'] = epoch
+                rollfile = script_args.output_dir.replace("checkpoints/", "results/rollouts/")
+                while rollfile[-1]=='/':
+                    rollfile = rollfile[:-1]
+                rollfile = rollfile+".jsonl"
+                append_dict_to_jsonl(roll_dict, rollfile)
+                
+            ppo_trainer.log_stats(stats, batch, logrewards)
+            if script_args.save_freq and epoch and epoch % script_args.save_freq == 0:
+                create_missing_folders_for_file(script_args.output_dir + f"step_{epoch}"+"/")
+                ppo_trainer.save_pretrained(script_args.output_dir + f"step_{epoch}")
+        except: 
+            print("some sort of error (probably OOM), hope that this thing can recover it?")
+            torch.cuda.empty_cache()

@@ -26,7 +26,9 @@ export MLEN=256
 export CUDA_VISIBLE_DEVICES=1,2
 
 export DPOBATCHSIZE=4
-export MBSIZE=4
-sh script/dpoplus_script.sh "ultra" "outputs/data/ultra/smallultrappoinps" "functionbagofwords" 29520 "ultragolddpoplus"
+export MBSIZE=2
+# sh script/dpoplus_script.sh "ultra" "outputs/data/ultra/smallultrappoinps" "functionbagofwords" 29520 "ultragolddpoplustest2"
+
+sh script/dpoplus_script.sh "ultra" "outputs/data/ultra/smallultrappoinps" "functionultrafeedbackgold" 29520 "ultragolddpoplusfinal2"
 
 # sh script/dpoplus_script.sh "ultra" "ultra" "functionultrafeedbackgold" 29520 "ultragolddpoplus"
