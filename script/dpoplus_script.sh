@@ -40,6 +40,6 @@ accelerate launch --multi_gpu --config_file=$CFG --main_process_port=${4} \
     --oversample=$OSAMP \
     --temperature=1 \
     --rollout_strategy=normal \
-    --gen_bsize=64 \
+    --gen_bsize=4 \
     --kl_penalty="$KLP" --keep_long=$KEEPLONG \
     --save_rollouts=True > "outputs/logs/ppo/${1}_${5}.out"

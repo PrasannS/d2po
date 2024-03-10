@@ -21,7 +21,9 @@ from rlhfutils.data import (
     build_custom_promptdata, 
     collator,
     qaform,
-    anscat
+    anscat, 
+    webgpt_template, 
+    tulu_pf
 )
 
 os.environ["WANDB_TAGS"] = "[\"llamatrl\"]"
@@ -62,10 +64,12 @@ elif "apfarm" == script_args.dataset_name:
     dataset = build_apf_promptdata(tokenizer)
     rmformat = anscat
 # TODO fix ultrachat datset issue
-elif "ultra" == script_args.dataset_name:
+elif ("ultra" == script_args.dataset_name) or ("ultra/" in script_args.dataset_name) :
     print("NOTE we're not using custom data, we're using default ultafeedback here")
     # TODO maybe unify original prompt format? 
-    dataset = build_ultra_promptdata(tokenizer)
+    template = tulu_pf if "tulu" in script_args.model_name else webgpt_template
+    print("MODEL NAME IS (CHECK IF WE SHOULD BE USING TULU) ", script_args.model_name)
+    dataset = build_ultra_promptdata(tokenizer, script_args.dataset_name, template)
 else: 
     pftmp = "default"
     mdatatmp = []
@@ -75,6 +79,9 @@ else:
         mdatatmp = ['sol_rows', 'response_j']
     elif "distil" in script_args.dataset_name or "math" in script_args.dataset_name: 
         pftmp = 'onlyans'
+    if "tulu" in script_args.model_name: 
+        print('using TULU template')
+        pftmp = 'tulu'
         # mdatatmp = ['response_k', 'response_j']
     # keep track of solution rows
     dataset = build_custom_promptdata(tokenizer, script_args.dataset_name, pftmp, mdatatmp)

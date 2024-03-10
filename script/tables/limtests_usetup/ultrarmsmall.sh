@@ -6,4 +6,4 @@ export REINIT=False
 export LTYPE="normal"
 export BSIZE=2
 
-sh script/train_rm.sh "ultra" "ultra5k" "ultraheld5k" 12350 "smallrm"
+sh script/train_rm.sh "ultra" "ultra500" "ultratinyheld" 12350 "tinyrm"

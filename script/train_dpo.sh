@@ -10,8 +10,8 @@ accelerate launch --config_file=src/configs/default_single.yaml --main_process_p
     --evaldata="outputs/data/${1}/${3}" \
     --learning_rate=3e-5 \
     --beta=$BETA \
-    --save_steps=500 \
-    --eval_steps=500 > "outputs/logs/dpo/${1}_${4}_dpo.out"
+    --save_steps=50 \
+    --eval_steps=50 > "outputs/logs/dpo/${1}_${4}_dpo.out"
 
 # export CUDA_VISIBLE_DEVICES=4,5
 # accelerate launch --config_file=scripts/default_single.yaml \
