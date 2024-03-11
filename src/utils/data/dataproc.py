@@ -4,8 +4,6 @@ import os
 import json 
 import filelock 
 from datasets import Dataset
-from utils.eval.rewards import annot_proc
-
         
 def add_row_index(example, idx):
     example['row_index'] = idx
@@ -37,6 +35,30 @@ def append_dict_to_jsonl(metadata_dict, fname, lis=None):
             file.write(json_string + '\n')
         if lis!=None:
             lis.append(metadata_dict)
+            
+# TODO refactor this into below method for cleanliness
+def annot_proc(row, log=False):
+    crits = ['instruction_following', 'helpfulness']
+    anns = row['completions']
+    # assert len(anns) == 2
+    scores = []
+    # each thing should add 2 scores
+    for an in anns:
+        if log:
+            print(an)
+        score = 0
+        tot = 0
+        for c in crits: 
+            try:
+                score +=float(an['annotations'][c][0]['Rating'])
+                tot+=1
+            except:
+                print("missing rating for ", c)
+        if tot==0:
+            scores.append(1)
+        else:
+            scores.append(score/tot)
+    return scores
 
 # given a starting index (default 0), and some other thing, return the
 # better and worse index in that order

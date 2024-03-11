@@ -92,9 +92,9 @@ if ("math" in script_args.reward_model_name) and ("function" in script_args.rewa
 #     print("beware, using concat format")
 #     rmformat = anscat
 print(dataset[0])
-if len(dataset)<(script_args.steps*2*script_args.batch_size):
-    dataset = concatenate_datasets([dataset]*int(1 + (script_args.steps*2*script_args.batch_size)/len(dataset)))
-    print('extended dataset to size: ', len(dataset))
+# if len(dataset)<(script_args.steps*2*script_args.batch_size):
+#     dataset = concatenate_datasets([dataset]*int(1 + (script_args.steps*2*script_args.batch_size)/len(dataset)))
+#     print('extended dataset to size: ', len(dataset))
 
 # We then build the PPOTrainer, passing the model, the reference model, the tokenizer
 ppo_trainer = PPOTrainer(

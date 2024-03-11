@@ -9,7 +9,7 @@ Given a set of rewards, / inputs, score everything with the gold function, updat
 
 TODO clean up call code and expand the functionality a bit
 """
-def get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script_args, i, metrics):
+def get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script_args, baseind, metrics):
     if "contdist" in metrics.keys():
         rw.likemod = metrics['contdist'][0]
         rw.liketok = metrics['contdist'][1]
@@ -32,21 +32,34 @@ def get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script
         inds = inds[:int(len(inds)*script_args.relabel_ratio)]
         
     for ind in range(0, len(rewards), 2):
-        newgs = get_synth_rewards(input_texts[i+ind:i+ind+2], script_args.goldreward)
+        if "ultra" in script_args.goldreward:
+            newgs = []
+        else:
+            newgs = get_synth_rewards(input_texts[baseind+ind:baseind+ind+2], script_args.goldreward)
+            if newgs[0]!=newgs[1]:
+                acc += 1 if ((newgs[0]>newgs[1])==(rewards[ind]>rewards[ind+1])) else 0
+                totnew +=1
+
         tmp = {
-            'texts':input_texts[i+ind:i+ind+2],
+            'texts':input_texts[baseind+ind:baseind+ind+2],
             'rewards':[float(f) for f in rewards[ind:ind+2]],
             'golds':newgs,
             # 'thresh':0,
             'labelled':metrics['label_count'],
             'step':metrics['call_count']
         }
-        if newgs[0]!=newgs[1]:
-            acc += 1 if ((newgs[0]>newgs[1])==(rewards[ind]>rewards[ind+1])) else 0
-            totnew +=1
-        # TODO this needs to have an abs on it I think? Currrently most examples are getting used
+        
+        # TODO this needs to have an abs on it I think? Currently most examples are getting used
         # NOTE this used to be a thresholding thing, now base stuff on selection criteria code (above)
         if ind in inds:
+            # only get UF gold labels for selected examples to avoid going bankrupt
+            if "ultra" in script_args.goldreward:
+                newgs = get_synth_rewards(input_texts[baseind+ind:baseind+ind+2], script_args.goldreward)
+                tmp['golds'] = newgs
+                if newgs[0]!=newgs[1]:
+                    acc += 1 if ((newgs[0]>newgs[1])==(rewards[ind]>rewards[ind+1])) else 0
+                    totnew +=1
+                
             metrics['label_count']+=1
             if metrics['label_count']>=script_args.stopupdates:
                 # NOTE if we label past a certain limit then stop grad updates
@@ -67,10 +80,10 @@ def get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script
                 continue
             if script_args.tracking:
                 # create new dataset on the fly
-                metrics['extradata'].insert(0, {"input_ids_j":inps.input_ids[jind], "attention_mask_j":inps.attention_mask[jind],
-                                    "input_ids_k":inps.input_ids[kind], "attention_mask_k":inps.attention_mask[kind]})
+                metrics['extradata'].insert(0, {"input_ids_j":inps['input_ids'][jind], "attention_mask_j":inps['attention_mask'][jind],
+                                    "input_ids_k":inps['input_ids'][kind], "attention_mask_k":inps['attention_mask'][kind]})
                 # keep track of how much each datapoint gets reused
-                keyval = tokenizer.decode(inps.input_ids[jind], skip_special_tokens=True)+tokenizer.decode(inps.input_ids[kind], skip_special_tokens=True)
+                keyval = tokenizer.decode(inps['input_ids'][jind], skip_special_tokens=True)+tokenizer.decode(inps['input_ids'][kind], skip_special_tokens=True)
                 if keyval not in metrics['reuses']:
                     metrics['reuses'][keyval] = 0
                 metrics['reuses'][keyval] = metrics['reuses'][keyval]+1

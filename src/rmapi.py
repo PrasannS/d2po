@@ -60,6 +60,8 @@ def train():
         # for logging / later use
         metrics['all_texts'].extend(input_texts)
         scores = []
+        tokinps = []
+        tokattns = []
         
         # TODO depending on speed may need to turn off
         for i in range(0, len(input_texts), script_args.batch_size):
@@ -70,6 +72,8 @@ def train():
             # if we want to do the variance updates
             with nullcontext() if ncont else torch.no_grad():
                 inps = tokenizer(input_texts[i:i+script_args.batch_size], padding=True, truncation=True, return_tensors="pt").to(reward_model.device)
+                tokinps.extend(inps.input_ids.detach())
+                tokattns.extend(inps.attention_mask.detach())
                 rewards = reward_model(input_ids=inps.input_ids, attention_mask=inps.attention_mask)[0]
                 scores.extend(rewards.detach().squeeze(-1).tolist())
             
@@ -101,7 +105,8 @@ def train():
                     tmploss = tmploss * (1/(pairwise_diff.shape[1]**2)) * -1
                 # NOTE a way to compose the normal update and the new update things
                 loss = loss + tmploss
-                get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script_args, i, metrics)
+                # HACK moving the get_gold_and_log call
+                # get_gold_and_log(rewards, inps, input_texts, tokenizer, reward_model, script_args, i, metrics)
                 # external method call, note that this is important for preparing data with some methods
             if ((metrics['call_count']+1)%script_args.oldratio)==0:
                 print("old data update")
@@ -125,6 +130,9 @@ def train():
                 torch.nn.utils.clip_grad_norm_(reward_model.parameters(), max_norm=1.0)
                 optimizer.step()
                 print(("prompt var step" if "indiv" in script_args.diffunct=='indiv' else "variance step") if varupdata else "retrain step")
+        
+        assert len(tokinps)==len(scores)
+        get_gold_and_log(scores, {'input_ids':tokinps, 'attention_mask':tokattns}, input_texts, tokenizer, reward_model, script_args, 0, metrics)
         
         # NOTE got rid of weighted value function thing
         metrics['threshsum'].append(mean([abs(scores[i]-scores[i+1]) for i in range(0, len(scores), 2)]))
