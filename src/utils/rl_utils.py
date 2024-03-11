@@ -51,7 +51,7 @@ def get_pipeline(rmname, device):
     # if pipetok.pad_token is None:
     pipetok.pad_token_id = pipetok.eos_token_id
     pipetok.pad_token = pipetok.eos_token
-    print(pipetok.pad_token)
+    print("using pipeline with pad token ", pipetok.pad_token)
     reward_model = pipeline(
         "sentiment-analysis",
         model=rmname,
@@ -60,6 +60,12 @@ def get_pipeline(rmname, device):
         tokenizer=pipetok,
         return_token_type_ids=False,
     )
+    reward_model.tokenizer.pad_token = reward_model.tokenizer.eos_token
+    reward_model.model.config.pad_token_id = reward_model.tokenizer.eos_token_id
+    
+    # sanity check
+    print("pipeline sanity ", reward_model(['hi there', 'my friend']))
+    
     return pipetok, reward_model
 
 def load_models(script_args, loadms="rmppo", dev=0):

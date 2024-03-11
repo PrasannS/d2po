@@ -9,7 +9,7 @@ if contains $3 "http"; then
     echo "using http reward"
     REWARD=$3
 else
-    REWARD="outputs/models/rewards/${1}/${3}_rm"
+    REWARD="outputs/models/${1}/${3}_rm"
 fi
 
 if contains $5 "normppo"; then 
