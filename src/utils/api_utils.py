@@ -3,6 +3,7 @@ import utils.eval.rewards as rw
 from utils.data.dataproc import append_dict_to_jsonl
 import numpy as np
 import random
+from statistics import mean
 
 """
 Given a set of rewards, / inputs, score everything with the gold function, update relevant data stuff
@@ -33,10 +34,9 @@ def get_gold_and_log(inds, tokenizer, script_args, metrics):
             'golds':newgs,
             'call':metrics['cinds'][ind:ind+2]
         }
+        append_dict_to_jsonl(tmp, script_args.logfile, metrics['logdata'])
         # Add to data now
         if ind in inds:
-            # TODO this may have been a big bug?
-            allngs.append(newgs)
             # track how much extra data is needed (TODO at the beginning this will make some noise)
             if newgs[0]>newgs[1]:
                 jind = ind
@@ -44,17 +44,19 @@ def get_gold_and_log(inds, tokenizer, script_args, metrics):
             elif newgs[1]>newgs[0]:
                 jind = ind+1
                 kind = ind
+            else: 
+                continue
             if script_args.tracking:
                 # create new dataset on the fly
-                metrics['extradata'].insert(0, {"input_ids_j":metrics['inpids']['input_ids'][jind], "attention_mask_j":metrics['masks']['attention_mask'][jind],
-                                    "input_ids_k":metrics['inpids']['input_ids'][kind], "attention_mask_k":metrics['masks']['attention_mask'][kind]})
+                metrics['extradata'].insert(0, {"input_ids_j":metrics['inpids'][jind], "attention_mask_j":metrics['masks'][jind],
+                                    "input_ids_k":metrics['inpids'][kind], "attention_mask_k":metrics['masks'][kind]})
                 # keep track of how much each datapoint gets reused
-                keyval = tokenizer.decode(metrics['inpids']['input_ids'][jind], skip_special_tokens=True)+tokenizer.decode(metrics['inpids']['input_ids'][kind], skip_special_tokens=True)
+                keyval = tokenizer.decode(metrics['inpids'][jind], skip_special_tokens=True)+tokenizer.decode(metrics['inpids'][kind], skip_special_tokens=True)
                 if keyval not in metrics['reuses']:
                     metrics['reuses'][keyval] = 0
                 metrics['reuses'][keyval] = metrics['reuses'][keyval]+1
-        append_dict_to_jsonl(tmp, script_args.logfile, metrics['logdata'])
         
-    print(len(allngs)," new rewards: ", allngs)
+        
+    print(len(allngs)," new rewards: ", mean([mean(m) for m in allngs]))
     if totnew>0:
         print("acc is", acc/totnew)

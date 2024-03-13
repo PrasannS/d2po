@@ -195,7 +195,7 @@ def get_scores_from_api(text_list, url):
 
     # Send POST request to the Flask API
     try:
-        response = requests.post(url, data=data, headers={'Content-Type': 'application/json'}, timeout=100)
+        response = requests.post(url, data=data, headers={'Content-Type': 'application/json'}, timeout=1000)
         response.raise_for_status()  # Raise an exception for HTTP errors
 
         # Get the scores from the response

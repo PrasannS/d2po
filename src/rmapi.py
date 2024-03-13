@@ -51,7 +51,7 @@ def predict():
 def train():
     global metrics
     
-    # for thread safety
+    # for thread safety, TODO sanity check, length-based threshold should work
     with lock:
         metrics['call_count'] += 1
         # Get list of strings from the POST request
@@ -81,7 +81,8 @@ def train():
         assert len(metrics['masks'])==len(metrics['all_texts'])
         
         # we're ready to do some kind of active update
-        if script_args.tracking: # TODO HACK this needs to be an actual condition
+        if script_args.samp_n<=len(metrics['masks']): # TODO HACK this needs to be an actual condition
+            print("ready to do some RM updates")
             inds = list(range(0, len(metrics['rscores']), 2))
             # can use either random-based or slightly more complex confidence thing for selecting examples to use in active updates
             if script_args.relab_criteria=="conf":
@@ -90,23 +91,24 @@ def train():
             elif "rand" in script_args.relab_criteria:
                 random.shuffle(inds)
             
-            inds = inds[:int(len(inds)*script_args.relabel_ratio)]
-            print("we're going to now train with: ", len(inds), " preference pairs")
+            inds = inds[:script_args.relabels]
+            print("we're going to now train with: ", len(inds), " preference pairs out of a possible ", len(metrics['rscores'])/2)
             
             # once we've figured out that we want to update things, let's now select something with a strategy, get golds, etc. 
             get_gold_and_log(inds, tokenizer, script_args, metrics)
 
-            if script_args.noupdates: 
+            if script_args.noupdates or (len(metrics['extradata'])==0): 
                 return jsonify(returnscos)
             # take random data points from what we've been messing with
             random.shuffle(metrics['extradata'])
             tmpdset = Dataset.from_list(metrics['extradata'])
+            print("len of new data is ", len(metrics['extradata']))
             
             # NOTE kicking shuffling back in for stability
             tmpdset = DataLoader(tmpdset, batch_size=script_args.batch_size, shuffle=True, collate_fn=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length))
             
             # cind = 0 readd_inds = []
-            for e in script_args.update_epochs:
+            for e in range(script_args.update_epochs):
                 
                 # do the whole extra adding thing
                 for idx, batch in enumerate(tmpdset):
@@ -165,7 +167,7 @@ if __name__ == '__main__':
 
     set_seed(script_args.seed)
     
-    metrics = {'call_count':0, 'label_count':0, 'all_texts':[], 'all_scores':[], 'inps':[], 'masks':[], 'rscores':[], 'cinds':[], 'extradata':[], 'logdata':[], 'reuses':{}}
+    metrics = {'call_count':0, 'label_count':0, 'all_texts':[], 'all_scores':[], 'inpids':[], 'masks':[], 'rscores':[], 'cinds':[], 'extradata':[], 'logdata':[], 'reuses':{}}
 
     print("goldreward is ", script_args.goldreward)
     if script_args.trainable:

@@ -21,6 +21,7 @@ class APIArguments:
     noupdates: Optional[bool] = field(default=False, metadata={"help": "within trainable code, can disable gradient updates"})
     diffunct: Optional[str] = field(default="no", metadata={"help": "do updates w.r.t only stuff within batch?"})
     tracking: Optional[bool] = field(default=False, metadata={"help": "keep track of stuff, do active learning thing"})
+    
     trainheur: Optional[bool] = field(default=False, metadata={"help": "keep track of stuff, do active learning thing"})
     learning_rate: Optional[float] = field(default=1.41e-5, metadata={"help": "the learning rate"})
     max_length: Optional[int] = field(default=50, metadata={"help": "maximum length for generation"})
@@ -36,7 +37,7 @@ class APIArguments:
     oldupdates: Optional[bool] = field(default=False, metadata={"help": "use experience replay from initial distribution"})
 
     relab_criteria: Optional[str] = field(default="conf", metadata={"help": "what criteria [conf, random] to use for relabeling set"})
-    relabel_ratio: Optional[float] = field(default=0, metadata={"help": "what ratio (different criterion) of new gold outputs to collect"})
+    
     
     port: Optional[int] = field(default=5000, metadata={"help": "the port"})
     stopupdates: Optional[int] = field(default=100000, metadata={"help": "how many gradient updates with gold relabels after we stop performing updates"})
@@ -45,3 +46,6 @@ class APIArguments:
     
     callratio: Optional[int] = field(default=1, metadata={"help": "how many steps (proccesses count separately) to call update function"})
     update_epochs: Optional[int] = field(default=1, metadata={"help": "how many steps (proccesses count separately) to call update function"})
+    
+    samp_n: Optional[int] = field(default=1, metadata={"help": "how large should the current stack of data get before we do RM updating"})
+    relabels: Optional[int] = field(default=1, metadata={"help": "how many relabels to get"})
