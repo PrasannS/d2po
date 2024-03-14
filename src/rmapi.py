@@ -85,7 +85,7 @@ def train():
             print("ready to do some RM updates")
             inds = list(range(0, len(metrics['rscores']), 2))
             # can use either random-based or slightly more complex confidence thing for selecting examples to use in active updates
-            if script_args.relab_criteria=="conf":
+            if "conf" in script_args.relab_criteria:
                 diffs = list([abs(float(metrics['rscores'][i]-metrics['rscores'][i+1])) for i in range(0, len(metrics['rscores']), 2)])
                 inds = list([inds[i] for i in np.argsort(diffs)])
             elif "rand" in script_args.relab_criteria:
@@ -96,8 +96,17 @@ def train():
             
             # once we've figured out that we want to update things, let's now select something with a strategy, get golds, etc. 
             get_gold_and_log(inds, tokenizer, script_args, metrics)
+            
+            print("we have: ", len(metrics['extradata']), "new examples to work with when throwing out equal pairs")
 
             if script_args.noupdates or (len(metrics['extradata'])==0): 
+                # reset everything now
+                resetkeys = ["extradata", 'inpids', 'masks', 'rscores', 'all_texts', 'cinds']
+                for r in resetkeys:
+                    metrics[r] = []
+                    metrics[r].clear()
+                print("early return")
+                assert len(metrics['masks'])==0
                 return jsonify(returnscos)
             # take random data points from what we've been messing with
             random.shuffle(metrics['extradata'])
@@ -133,6 +142,10 @@ def train():
             resetkeys = ["extradata", 'inpids', 'masks', 'rscores', 'all_texts', 'cinds']
             for r in resetkeys:
                 metrics[r] = []
+                metrics[r].clear()
+
+            assert len(metrics['masks'])==0
+
             
             # add back data that needs to be added back
             # newdata = list([metrics['extradata'][ind] for ind in readd_inds])

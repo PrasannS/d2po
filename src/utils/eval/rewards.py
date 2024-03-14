@@ -180,7 +180,7 @@ def probcompute(text, tok, mod):
 def computelike(input_texts, lt, lm, slt, slm, process=False, bsize=32, pbar=False):
     scos = []
     if "\n\nAnswer:" in input_texts[0]:
-        print('clean')
+        # print('clean')
         # global liketok, likemod, slikemod, sliketok
         input_texts = [it.replace("\n\nAnswer: ", "").replace("Question: ", "") for it in input_texts]
     # TODO sanity check the input format of this
@@ -189,8 +189,10 @@ def computelike(input_texts, lt, lm, slt, slm, process=False, bsize=32, pbar=Fal
         itrange = tqdm(itrange)
     for i in itrange:
         batch = input_texts[i:i+bsize]
+        newscos = (probcompute(batch, lt, lm) - probcompute(batch, slt, slm)).tolist()
+        assert len(newscos)>1
         # gold reward here is based on the difference (TODO logic for choosing single model option)
-        scos.extend((probcompute(batch, lt, lm) - probcompute(batch, slt, slm)).tolist())
+        scos.extend(newscos)
         
     return scos
 
