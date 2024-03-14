@@ -33,7 +33,7 @@ nohup sh script/newupdateapi.sh "contrastivedistill" "" "tiny_rm" "rand_cdist_50
 sleep 20
 # Other commands
 export CUDA_VISIBLE_DEVICES=2,3
-sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29520 "rand_cdist_500_250_activefix"
+sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29522 "rand_cdist_500_250_activefix"
 jobs
 pkill -f "rand_cdist_500_250_activefix"
 jobs
@@ -57,7 +57,7 @@ nohup sh script/newupdateapi.sh "contrastivedistill" "" "tiny_rm" "conf_cdist_50
 sleep 20
 # Other commands
 export CUDA_VISIBLE_DEVICES=2,3
-sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29520 "conf_cdist_500_250_activefix"
+sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29522 "conf_cdist_500_250_activefix"
 jobs
 pkill -f "conf_cdist_500_250_activefix"
 jobs
