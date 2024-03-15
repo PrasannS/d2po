@@ -21,12 +21,18 @@ def get_gold_and_log(inds, tokenizer, script_args, metrics):
     allngs = []
     acc = 0
     totnew = 0
+    
     for ind in range(0, len(metrics['rscores']), 2):
         # TODO just make this a script_arg, maybe have a hard limit for the ultra version? 
         getgold = (ind in inds) if ("ultra" in script_args.goldreward) else True
         # to prevent going bankrupt
         newgs = get_synth_rewards(metrics['all_texts'][ind:ind+2], script_args.goldreward) if getgold else None
         allngs.append(newgs)
+        
+        if (len(newgs)>0) and (newgs[0]!=newgs[1]):
+            totnew +=1
+            acc += 1 if (newgs[0]>newgs[1]) == (metrics['rscores'][ind]>metrics['rscores'][ind+1]) else 0
+                
 
         tmp = {
             'texts':metrics['all_texts'][ind:ind+2],
@@ -46,6 +52,8 @@ def get_gold_and_log(inds, tokenizer, script_args, metrics):
                 kind = ind
             else: 
                 continue
+            
+            
             if script_args.tracking:
                 # create new dataset on the fly
                 metrics['extradata'].insert(0, {"input_ids_j":metrics['inpids'][jind], "attention_mask_j":metrics['masks'][jind],

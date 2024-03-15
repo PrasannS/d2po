@@ -476,6 +476,10 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
         if "einstein" in rmname:
             batch['response'] = ["\n".join(r.split("\n")[:2]) for r in batch['response']]
             response_tensors = [tokenizer(r, return_tensors="pt").input_ids.squeeze(0) for r in batch['response']]
+        if "math" in script_args.output_dir: 
+            print("math proc")
+            # manually make sure we don't have a ton of extra stuff for each one of these
+            batch['response'] = ["=".join(batch['response'][indval].split("=")[:batch['query'][i].count("(")+1]) for indval in range(len(batch['response']))]
         
         # let's manually avoid using stuff that needs to get omitted
         if script_args.omit_long==1:

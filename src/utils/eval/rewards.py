@@ -103,21 +103,33 @@ def allmathpreds(text_list, scale=5, log=False):
     
     return [scale*mean(calculate_math_rewards(t)[1:]) for t in text_list]
 
+def stripexpr(expr):
+    keepchars = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '(', ")", "+", "*", "-", "="]
+    news = ""
+    for e in expr: 
+        if e in keepchars:
+            news = news+e
+    return news
+    
 # given a string with predictions (can alternatively pass in golds), get back a step-by-step reward
 def calculate_math_rewards(predictions, golds=None, log=False):
-    predictions = predictions.replace("Question:", "").replace("\n\nAnswer:", "")
+    predictions = stripexpr(predictions)# predictions.replace("Question:", "").replace("\n\nAnswer:", "")
+    
     try:
         if type(predictions)==str:
-            predictions = predictions.split(" = ")
+            predictions = predictions.split("=")
         if golds is None: 
             golds = solve_expression(predictions[0])
+        if type(golds)==str:
+            golds = golds.split("=")
+        if len(golds)>len(predictions):
+            predictions.extend([""]*(len(golds)-len(predictions)))
         if log:
             print(predictions)
             print(golds)
-        if type(golds)==str:
-            golds = golds.split(" = ")
         rewards = []
         for pred, gold in zip(predictions, golds):
+            print("p", pred, "g", gold)
             max_length = max(len(pred), len(gold))
             # make reward without accounting for spaces
             norm_edit_dist = edit_distance(pred.replace(" ", ""), gold.replace(" ", "")) / max_length if max_length > 0 else 0
@@ -126,6 +138,7 @@ def calculate_math_rewards(predictions, golds=None, log=False):
         
         return rewards if len(rewards)>1 else rewards+[0]
     except:
+        print("error")
         return [0,0,0]
 
 def solve_expression(expression):
