@@ -129,7 +129,7 @@ def train():
                     loss = -nn.functional.logsigmoid(rdiff).mean()
                     optimizer.zero_grad()
                     loss.backward()
-                    torch.nn.utils.clip_grad_norm_(reward_model.parameters(), max_norm=1.0)
+                    # torch.nn.utils.clip_grad_norm_(reward_model.parameters(), max_norm=1.0)
                     optimizer.step()
                     
                     # ndiff = rdiff.detach() NOTE leaving this here in case we want XP replay back

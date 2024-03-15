@@ -15,12 +15,21 @@ fi
 if contains $5 "normppo"; then 
     echo "using normal PPO objective"
     KLP="kl"
-    OSAMP=4
+    OSAMP=2
 else
     echo "using DPO plus objective"
     KLP="dpoplus"
     OSAMP=2
 fi
+
+if contains $5 "justoffpolicy"; then 
+    echo "using only off policy rollouts"
+    GENJSON="src/configs/offpolicygen.json"
+else
+    echo "using normal rollouts"
+    GENJSON="none"
+fi
+
 
 echo "config file $CFG"
 accelerate launch --multi_gpu --config_file=$CFG --main_process_port=${4} \
@@ -42,4 +51,5 @@ accelerate launch --multi_gpu --config_file=$CFG --main_process_port=${4} \
     --rollout_strategy=normal \
     --gen_bsize=$GBSIZE \
     --kl_penalty="$KLP" --keep_long=$KEEPLONG \
-    --save_rollouts=True > "outputs/logs/ppo/${1}_${5}.out"
+    --save_rollouts=True > "outputs/logs/ppo/${1}_${5}.out" \
+    --generators_json=$GENJSON

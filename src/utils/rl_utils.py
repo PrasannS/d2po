@@ -377,7 +377,7 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
     curstrat = -1
     # every time we hit a new index in stratchange list, rollout strategy changes (new checkpoint on top of initial)
     sjson = {'intervals':[100000]}
-    if script_args.generators_json !=None:
+    if (script_args.generators_json !=None) and (script_args.generators_json != "none"):
         with open(script_args.generators_json) as f:
             sjson = json.load(f)
             

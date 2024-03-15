@@ -25,17 +25,17 @@ export DPOBATCHSIZE=32
 export MBSIZE=32
 export GBSIZE=32
 
-export SAMPN=$((32*500))
-export RELABELS=$((250))
+export SAMPN=$((32*100))
+export RELABELS=$((50))
 export CUDA_VISIBLE_DEVICES=5
 # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "contrastivedistill" "" "tiny_rm" "rand_cdist_500_250_activefix" 5010 & 
+nohup sh script/newupdateapi.sh "contrastivedistill" "" "tiny_rm" "rand_cdist_100_50_activefix" 5010 & 
 sleep 20
 # Other commands
 export CUDA_VISIBLE_DEVICES=2,3
-sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29522 "rand_cdist_500_250_activefix"
+sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29522 "rand_cdist_100_50_activefix"
 jobs
-pkill -f "rand_cdist_500_250_activefix"
+pkill -f "rand_cdist_100_50_activefix"
 jobs
 
 # BEST TECHNIQUE (ALL IN ONE)
@@ -49,17 +49,17 @@ export DPOBATCHSIZE=32
 export MBSIZE=32
 export GBSIZE=32
 
-export SAMPN=$((32*500))
-export RELABELS=$((250))
+export SAMPN=$((32*100))
+export RELABELS=$((50))
 export CUDA_VISIBLE_DEVICES=5
 # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "contrastivedistill" "" "tiny_rm" "conf_cdist_500_250_activefix" 5010 & 
+nohup sh script/newupdateapi.sh "contrastivedistill" "" "tiny_rm" "conf_cdist_100_50_activefix" 5010 & 
 sleep 20
 # Other commands
 export CUDA_VISIBLE_DEVICES=2,3
-sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29522 "conf_cdist_500_250_activefix"
+sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29522 "conf_cdist_100_50_activefix"
 jobs
-pkill -f "conf_cdist_500_250_activefix"
+pkill -f "conf_cdist_100_50_activefix"
 jobs
 
 
