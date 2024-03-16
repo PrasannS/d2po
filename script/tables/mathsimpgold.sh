@@ -28,12 +28,11 @@ export CUDA_VISIBLE_DEVICES=0,1
 export GBSIZE=8
 export MBSIZE=8
 
-
 export DPOBATCHSIZE=8
 # earlier runs
-# sh script/dpoplus_script.sh "math" "outputs/data/math/matheasier3" "functionmath" 29520 "goldb8easier3"
+sh script/dpoplus_script.sh "math" "outputs/data/math/matheasier3" "functionmath" 29520 "goldb8easier3fix"
 
-# sh script/dpoplus_script.sh "math" "outputs/data/math/matheasy4" "functionmath" 29520 "goldb8easy4"
+sh script/dpoplus_script.sh "math" "outputs/data/math/matheasy4" "functionmath" 29520 "goldb8easy4fix"
 
 # later runs
-sh script/dpoplus_script.sh "math" "outputs/data/math/easy2_100k" "functionmath" 29527 "goldb8easy2fix"
+# sh script/dpoplus_script.sh "math" "outputs/data/math/easy2_100k" "functionmath" 29527 "goldb8easy2fix"

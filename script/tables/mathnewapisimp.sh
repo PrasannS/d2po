@@ -60,6 +60,50 @@ defaults() {
 
 # BEST TECHNIQUE (ALL IN ONE)
 
+# defaults
+# export ATYPE="conf"
+# export UEPOCHS=2
+# export APBSIZE=16
+# export GREWARD="math"
+
+# export DPOBATCHSIZE=32
+# export MBSIZE=32
+# export GBSIZE=32
+
+# export SAMPN=$((32*2))
+# export RELABELS=$((1*2))
+# export CUDA_VISIBLE_DEVICES=2
+# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/newupdateapi.sh "math" "" "tiny_rm" "conf8repeasy1v2fix" 5007 &
+# # Other command
+# export CUDA_VISIBLE_DEVICES=3,4
+# sh script/dpoplus_script.sh "math" "outputs/data/math/easy2_100k" "http://127.0.0.1:5007/train" 29519 "conf8repeasy1v2fix"
+# jobs
+# pkill -f "conf8repeasy1v2fix"
+# jobs
+
+# defaults
+# export ATYPE="rand"
+# export UEPOCHS=2
+# export APBSIZE=16
+# export GREWARD="math"
+
+# export DPOBATCHSIZE=32
+# export MBSIZE=32
+# export GBSIZE=32
+
+# export SAMPN=$((32*2))
+# export RELABELS=$((2*2))
+# export CUDA_VISIBLE_DEVICES=2
+# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/newupdateapi.sh "math" "" "tiny_rm" "rand8repeasy1v2" 5007 &
+# # Other command
+# export CUDA_VISIBLE_DEVICES=3,4
+# sh script/dpoplus_script.sh "math" "outputs/data/math/easy2_100k" "http://127.0.0.1:5007/train" 29519 "rand8repeasy1v2"
+# jobs
+# pkill -f "rand8repeasy1v2"
+# jobs
+
 defaults
 export ATYPE="conf"
 export UEPOCHS=2
@@ -74,16 +118,16 @@ export SAMPN=$((32*2))
 export RELABELS=$((1*2))
 export CUDA_VISIBLE_DEVICES=2
 # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "math" "" "tiny_rm" "conf8repeasy1v2fix" 5007 &
+nohup sh script/newupdateapi.sh "math" "" "tiny_rm" "conf8repeasy3_1v2fix" 5007 &
 # Other command
 export CUDA_VISIBLE_DEVICES=3,4
-sh script/dpoplus_script.sh "math" "outputs/data/math/easy2_100k" "http://127.0.0.1:5007/train" 29519 "conf8repeasy1v2fix"
+sh script/dpoplus_script.sh "math" "outputs/data/math/matheasier3" "http://127.0.0.1:5007/train" 29519 "conf8repeasy3_1v2fix"
 jobs
-pkill -f "conf8repeasy1v2fix"
+pkill -f "conf8repeasy3_1v2fix"
 jobs
 
 defaults
-export ATYPE="rand"
+export ATYPE="conf"
 export UEPOCHS=2
 export APBSIZE=16
 export GREWARD="math"
@@ -93,14 +137,13 @@ export MBSIZE=32
 export GBSIZE=32
 
 export SAMPN=$((32*2))
-export RELABELS=$((2*2))
+export RELABELS=$((1*2))
 export CUDA_VISIBLE_DEVICES=2
 # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "math" "" "tiny_rm" "rand8repeasy1v2" 5007 &
+nohup sh script/newupdateapi.sh "math" "" "tiny_rm" "conf8repeasy4_1v2fix" 5007 &
 # Other command
 export CUDA_VISIBLE_DEVICES=3,4
-sh script/dpoplus_script.sh "math" "outputs/data/math/easy2_100k" "http://127.0.0.1:5007/train" 29519 "rand8repeasy1v2"
+sh script/dpoplus_script.sh "math" "outputs/data/math/matheasy4" "http://127.0.0.1:5007/train" 29519 "conf8repeasy4_1v2fix"
 jobs
-pkill -f "rand8repeasy1v2"
+pkill -f "conf8repeasy4_1v2fix"
 jobs
-
