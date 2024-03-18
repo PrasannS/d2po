@@ -27,12 +27,12 @@ def get_gold_and_log(inds, tokenizer, script_args, metrics):
         getgold = (ind in inds) if ("ultra" in script_args.goldreward) else True
         # to prevent going bankrupt
         newgs = get_synth_rewards(metrics['all_texts'][ind:ind+2], script_args.goldreward) if getgold else None
-        allngs.append(newgs)
+        if newgs is not None:
+            allngs.append(newgs)
         
-        if (len(newgs)>0) and (newgs[0]!=newgs[1]):
+        if (newgs is not None) and (newgs[0]!=newgs[1]):
             totnew +=1
             acc += 1 if (newgs[0]>newgs[1]) == (metrics['rscores'][ind]>metrics['rscores'][ind+1]) else 0
-                
 
         tmp = {
             'texts':metrics['all_texts'][ind:ind+2],
