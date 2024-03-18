@@ -1,0 +1,88 @@
+# SH File for running the whole shebang on cdistill, noun tasks, will debug math separately
+
+export CFG=src/configs/ppo_2gpu.yaml
+export STEPS=2000
+export SUPDATES=10000000
+export SEED=0
+export KEEPLONG=10
+
+defaults() {
+    export BASEMODEL="outputs/models/contrastivedistill/smalldpo"
+    export MLEN=50
+    export ATYPE="conf"
+    export ULR=1e-4
+    export CRATIO=1
+}
+
+# CDIST GET A BASELINE AT SMALLER INTERV LEVEL
+defaults
+export ATYPE="rand"
+export UEPOCHS=3
+export APBSIZE=16
+export GREWARD="contrastivedistill"
+
+export DPOBATCHSIZE=32
+export MBSIZE=32
+export GBSIZE=32
+
+export SAMPN=$((32*10))
+export RELABELS=$((5))
+export CUDA_VISIBLE_DEVICES=3
+# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+nohup sh script/newupdateapi.sh "contrastivedistill" "" "tiny_rm" "rand_cdist_10_5_activefix" 5010 & 
+sleep 20
+# Other commands
+export CUDA_VISIBLE_DEVICES=4,5
+sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29522 "rand_cdist_10_5_activefix"
+jobs
+pkill -f "rand_cdist_10_5_activefix"
+jobs
+
+
+defaults
+export ATYPE="rand"
+export UEPOCHS=2
+export APBSIZE=16
+export GREWARD="math"
+export BASEMODEL="outputs/models/math/smalldpo"
+export MLEN=100
+
+export DPOBATCHSIZE=32
+export MBSIZE=32
+export GBSIZE=32
+
+export SAMPN=$((32*2))
+export RELABELS=$((1*2))
+export CUDA_VISIBLE_DEVICES=3
+# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+nohup sh script/newupdateapi.sh "math" "" "tiny_rm" "rand8repeasy4_1v2fix" 5010 &
+# Other command
+export CUDA_VISIBLE_DEVICES=4,5
+sh script/dpoplus_script.sh "math" "outputs/data/math/matheasy4" "http://127.0.0.1:5010/train" 29522 "rand8repeasy4_1v2fix"
+jobs
+pkill -f "rand8repeasy4_1v2fix"
+jobs
+
+defaults
+export ATYPE="conf"
+export UEPOCHS=2
+export APBSIZE=16
+export GREWARD="math"
+export BASEMODEL="outputs/models/math/smalldpo"
+export MLEN=100
+
+export DPOBATCHSIZE=32
+export MBSIZE=32
+export GBSIZE=32
+
+export SAMPN=$((32*20))
+export RELABELS=$((1*20))
+export CUDA_VISIBLE_DEVICES=3
+# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+nohup sh script/newupdateapi.sh "math" "" "tiny_rm" "conf8repeasy4_1v2fix20_20" 5010 &
+# Other command
+export CUDA_VISIBLE_DEVICES=4,5
+sh script/dpoplus_script.sh "math" "outputs/data/math/matheasy4" "http://127.0.0.1:5010/train" 29522 "conf8repeasy4_1v2fix20_20"
+jobs
+pkill -f "conf8repeasy4_1v2fix20_20"
+jobs
