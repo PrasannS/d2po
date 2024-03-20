@@ -7,3 +7,4 @@ wandb/
 *apikey*
 */.ipynb_checkpoints
 *.jsonl
+*.pdf
