@@ -33,4 +33,5 @@ python -u src/rmapi.py \
     --update_epochs=$UEPOCHS \
     --usedpo=$USEDPO \
     --dpobase=$DPOBASEAPI \
+    --oldupdates=$ONLYOLDUPDATES \
     --tracking > "outputs/logs/api/${1}_${4}.out"

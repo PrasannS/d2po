@@ -131,9 +131,14 @@ def train():
             tmpdset = Dataset.from_list(metrics['extradata'])
             print("len of new data is ", len(metrics['extradata']))
             
-            # NOTE kicking shuffling back in for stability
-            tmpdset = DataLoader(tmpdset, batch_size=script_args.batch_size, shuffle=True, collate_fn=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length))
-            
+            if script_args.oldupdates:
+                print("use old data instead")
+                tmpdset = DataLoader(train_dataset.select(range(metrics['data_pointer'], metrics['data_pointer']+len(tmpdset))), batch_size=script_args.batch_size, shuffle=True, collate_fn=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length))
+                metrics['data_pointer'] += len(tmpdset)
+            else:
+                # NOTE kicking shuffling back in for stability
+                tmpdset = DataLoader(tmpdset, batch_size=script_args.batch_size, shuffle=True, collate_fn=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length))
+                
             # cind = 0 readd_inds = []
             for e in range(script_args.update_epochs):
                 
@@ -187,7 +192,6 @@ def train():
                 metrics[r].clear()
 
             assert len(metrics['masks'])==0
-
             
             # add back data that needs to be added back
             # newdata = list([metrics['extradata'][ind] for ind in readd_inds])
@@ -222,7 +226,7 @@ if __name__ == '__main__':
 
     set_seed(script_args.seed)        
     
-    metrics = {'call_count':0, 'label_count':0, 'all_texts':[], 'all_scores':[], 'inpids':[], 'masks':[], 'rscores':[], 'cinds':[], 'extradata':[], 'logdata':[], 'reuses':{}}
+    metrics = {'call_count':0, 'label_count':0, 'all_texts':[], 'all_scores':[], 'inpids':[], 'masks':[], 'rscores':[], 'cinds':[], 'extradata':[], 'logdata':[], 'reuses':{}, 'data_pointer':0}
 
     print("goldreward is ", script_args.goldreward)
     if script_args.trainable:

@@ -14,6 +14,8 @@ defaults() {
     export ULR=1e-4
     export CRATIO=1
 }
+export ONLYOLDUPDATES=0
+
 
 # BOW examine behavior at smaller intervals
 defaults
@@ -30,17 +32,17 @@ export MBSIZE=32
 export GBSIZE=32
 export USEDPO=1
 
-export SAMPN=$((32*5))
-export RELABELS=$((1*5))
-export CUDA_VISIBLE_DEVICES=0
-# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "bagofwords" "" "bowtiny_dpo" "conf_newalgo_5testnewseed2_dpoapi" 5003 & 
-# Other commands
-export CUDA_VISIBLE_DEVICES=1,2
-sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5003/train" 29519 "conf_newalgo_5testnewseed2_dpoapi"
-jobs
-pkill -f "conf_newalgo_5testnewseed2_dpoapi"
-jobs
+# export SAMPN=$((32*5))
+# export RELABELS=$((1*5))
+# export CUDA_VISIBLE_DEVICES=0
+# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/newupdateapi.sh "bagofwords" "" "bowtiny_dpo" "conf_newalgo_5testnewseed2_dpoapi" 5003 & 
+# # Other commands
+# export CUDA_VISIBLE_DEVICES=1,2
+# sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5003/train" 29519 "conf_newalgo_5testnewseed2_dpoapi"
+# jobs
+# pkill -f "conf_newalgo_5testnewseed2_dpoapi"
+# jobs
 
 # Noun pick up the missing conf baseline
 defaults
@@ -87,12 +89,12 @@ export GBSIZE=32
 
 export SAMPN=$((32*10))
 export RELABELS=$((5))
-export CUDA_VISIBLE_DEVICES=3
+export CUDA_VISIBLE_DEVICES=0
 # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
 nohup sh script/newupdateapi.sh "contrastivedistill" "" "smalldpo" "rand_cdist_10_5_activefixseed2" 5010 & 
 sleep 20
 # Other commands
-export CUDA_VISIBLE_DEVICES=4,5
+export CUDA_VISIBLE_DEVICES=1,2
 sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29522 "rand_cdist_10_5_activefixseed2"
 jobs
 pkill -f "rand_cdist_10_5_activefixseed2"
