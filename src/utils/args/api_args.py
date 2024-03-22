@@ -15,6 +15,7 @@ class APIArguments:
     model_name: Optional[str] = field(default="facebook/opt-125m", metadata={"help": "the model name"})
     reward_model_name: Optional[str] = field(default="function:bagofwords", metadata={"help": "the reward model name"})
     goldreward: Optional[str] = field(default=None, metadata={"help": "the reward model name"})
+    dpobase: Optional[str] = field(default=None, metadata={"help": "the base model name for DPO"})
     tokenizer_name: Optional[str] = field(default=None, metadata={"help": "the tokenizer name"})
     dataset_name: Optional[str] = field(default="ultra", metadata={"help": "the dataset name"})
     trainable: Optional[bool] = field(default=False, metadata={"help": "perform on-the-fly RM updates?"})
@@ -35,6 +36,7 @@ class APIArguments:
        metadata={"help": "whether to omit outputs that don't fit in length context or not"},
     )
     oldupdates: Optional[bool] = field(default=False, metadata={"help": "use experience replay from initial distribution"})
+    usedpo: Optional[bool] = field(default=False, metadata={"help": "use dpo model and loss instead of BT / RM"})
 
     relab_criteria: Optional[str] = field(default="conf", metadata={"help": "what criteria [conf, random] to use for relabeling set"})
     

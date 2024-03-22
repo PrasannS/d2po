@@ -8,3 +8,5 @@ wandb/
 */.ipynb_checkpoints
 *.jsonl
 *.pdf
+*.json
+*.csv

@@ -143,22 +143,24 @@ def load_models(script_args, loadms="rmppo", dev=0):
             )
 
     if "train" in loadms:
-    
+        
         # we want to train the RM on the fly
         tokenizer_name = script_args.tokenizer_name if script_args.tokenizer_name is not None else script_args.reward_model_name
         print("toker name is", tokenizer_name)
         print(script_args)
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_auth_token=True)
         tokenizer.pad_token = tokenizer.eos_token
-        
+    
+        # keep same for DPO, RM (note )
         peft_config = LoraConfig(
-            task_type=TaskType.SEQ_CLS,
+            task_type= TaskType.CAUSAL_LM if script_args.load_dpo else TaskType.SEQ_CLS ,
             inference_mode=False,
             r=8,
             lora_alpha=32,
             lora_dropout=0.1,
         )
-        modtype =  AutoModelForSequenceClassification
+        
+        modtype = AutoModelForCausalLM if script_args.load_dpo else AutoModelForSequenceClassification
         model = modtype.from_pretrained(
             script_args.reward_model_name, num_labels=1, torch_dtype=torch.bfloat16, device_map=dev # device_map="auto"
         )
