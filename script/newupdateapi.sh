@@ -31,4 +31,6 @@ python -u src/rmapi.py \
     --relab_criteria=$ATYPE \
     --relabels=$RELABELS \
     --update_epochs=$UEPOCHS \
+    --usedpo=$USEDPO \
+    --dpobase=$DPOBASEAPI \
     --tracking > "outputs/logs/api/${1}_${4}.out"

@@ -27,7 +27,6 @@ from utils.data.prompt_utils import convert_prompstlye, apfarmstyle
 from rlhfutils.data import load_manual, tokenize_dset
 import torch
 from torch import nn
-from torch.nn import F
 
 import threading
 
@@ -161,7 +160,7 @@ def train():
                         pi_logratios = pi_logratios.to(ref_model.device)
                         ref_logratios = ref_logratios.to(ref_model.device)
                         logits = pi_logratios - ref_logratios
-                        loss = -nn.functional.logsigmoid(BETA * logits)
+                        loss = -nn.functional.logsigmoid(BETA * logits).mean()
                         
                     else:
                         # normal RM BT loss
@@ -221,7 +220,7 @@ if __name__ == '__main__':
     parser = HfArgumentParser(APIArguments)
     script_args: APIArguments = parser.parse_args_into_dataclasses()[0]
 
-    set_seed(script_args.seed)
+    set_seed(script_args.seed)        
     
     metrics = {'call_count':0, 'label_count':0, 'all_texts':[], 'all_scores':[], 'inpids':[], 'masks':[], 'rscores':[], 'cinds':[], 'extradata':[], 'logdata':[], 'reuses':{}}
 

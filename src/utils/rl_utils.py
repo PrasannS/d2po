@@ -151,16 +151,20 @@ def load_models(script_args, loadms="rmppo", dev=0):
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_auth_token=True)
         tokenizer.pad_token = tokenizer.eos_token
     
+        if script_args.usedpo: 
+            print("using a dpo based RM")
+        else:
+            print("using a normal RM")
         # keep same for DPO, RM (note )
         peft_config = LoraConfig(
-            task_type= TaskType.CAUSAL_LM if script_args.load_dpo else TaskType.SEQ_CLS ,
+            task_type= TaskType.CAUSAL_LM if script_args.usedpo else TaskType.SEQ_CLS ,
             inference_mode=False,
             r=8,
             lora_alpha=32,
             lora_dropout=0.1,
         )
         
-        modtype = AutoModelForCausalLM if script_args.load_dpo else AutoModelForSequenceClassification
+        modtype = AutoModelForCausalLM if script_args.usedpo else AutoModelForSequenceClassification
         model = modtype.from_pretrained(
             script_args.reward_model_name, num_labels=1, torch_dtype=torch.bfloat16, device_map=dev # device_map="auto"
         )

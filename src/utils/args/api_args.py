@@ -36,7 +36,7 @@ class APIArguments:
        metadata={"help": "whether to omit outputs that don't fit in length context or not"},
     )
     oldupdates: Optional[bool] = field(default=False, metadata={"help": "use experience replay from initial distribution"})
-    usedpo: Optional[bool] = field(default=False, metadata={"help": "use dpo model and loss instead of BT / RM"})
+    usedpo: Optional[int] = field(default=0, metadata={"help": "use dpo model and loss instead of BT / RM"})
 
     relab_criteria: Optional[str] = field(default="conf", metadata={"help": "what criteria [conf, random] to use for relabeling set"})
     

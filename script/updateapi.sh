@@ -32,4 +32,6 @@ python -u src/rmapi.py \
     --redo_batches=$REDOBATCH \
     --relab_criteria=$ATYPE \
     --relabel_ratio=$LABRATIO \
+    --usedpo=$USEDPO \
+    --dpobase=$DPOBASEAPI \
     --tracking > "outputs/logs/api/${1}_${4}.out"
