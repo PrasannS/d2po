@@ -128,6 +128,16 @@ print("model load process")
 # HACK just leave this hardcoded in as a shuffle operation, bring in DA separately
 train_dataset, eval_dataset = tokenize_dset(train_dataset, eval_dataset, script_args, tokenizer)
 
+moreevals = []
+evlist = []
+if len(script_args.extraevaldata)>0:
+    if "," in script_args.extraevaldata:
+        evlist = script_args.extraevaldata.split(",")
+    else:
+        evlist = [script_args.extraevaldata]
+    for e in evlist:
+        # use all the eval sets in comma list
+        moreevals.append(tokenize_dset(e, e, script_args, tokenizer)[1])
 
 print("new size of dataset", len(train_dataset))
 
@@ -162,6 +172,10 @@ save_best_model_callback = SaveBestModelCallback(script_args.output_dir)
 trainer.add_callback(save_best_model_callback)
 
 trainer.train(script_args.resume_from_checkpoint)
+print(trainer.evaluate())
+for e in range(len(evlist)):
+    print(evlist[e])
+    print(trainer.evaluate(moreevals[e]))
 
 print("Saving last checkpoint of the model")
 model.save_pretrained(script_args.output_dir + "/_peft_last_checkpoint")

@@ -27,7 +27,8 @@ def get_gold_and_log(inds, tokenizer, script_args, metrics):
         # TODO just make this a script_arg, maybe have a hard limit for the ultra version? 
         getgold = (ind in inds) if ("ultra" in script_args.goldreward) else True
         # to prevent going bankrupt
-        newgs = get_synth_rewards([convert_prompstlye(m, qaform) for m in metrics['all_texts'][ind:ind+2]], script_args.goldreward) if getgold else None
+        tmptexts = [convert_prompstlye(m, qaform) for m in metrics['all_texts'][ind:ind+2]] if script_args.usedpo else metrics['all_texts'][ind:ind+2]
+        newgs = get_synth_rewards(tmptexts, script_args.goldreward) if getgold else None
         if newgs is not None:
             allngs.append(newgs)
         

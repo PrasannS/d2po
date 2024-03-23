@@ -188,7 +188,6 @@ def load_models(script_args, loadms="rmppo", dev=0):
     # standard PPO
     return config, tokenizer, model, optimizer, reward_model
 
-
 def lensco(lval):
     return -1*abs(lval-1)+1
 

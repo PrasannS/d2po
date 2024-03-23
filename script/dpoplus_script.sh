@@ -43,7 +43,7 @@ accelerate launch --multi_gpu --config_file=$CFG --main_process_port=${4} \
     --max_length=$MLEN --batch_size=$DPOBATCHSIZE \
     --mini_batch_size=$MBSIZE \
     --gradient_accumulation_steps=1 \
-    --ppo_epochs=1 --seed=$SEED --learning_rate=5e-5 \
+    --ppo_epochs=$PPOUPDATES --seed=$SEED --learning_rate=5e-5 \
     --early_stopping=False --output_dir=outputs/checkpoints/${1}/ppo_${5} \
     --init_kl_coef=0.05 --steps=$STEPS \
     --oversample=$OSAMP \

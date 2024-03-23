@@ -13,8 +13,7 @@ def qaform(q, r=""):
 def tuluform(q,r=""):
     return "<user>\n"+q+"\n<assistant>\n"+r
     
-# given an input in some style, figure out what style it is, convert it to a new style
-def convert_prompstlye(inp, newstyle=apfarmstyle):
+def splitter(inp):
     # qa style
     if ("Question:" in inp) and "Answer:" in inp: 
         instruction, response = inp.split("\n\nAnswer: ")
@@ -22,7 +21,7 @@ def convert_prompstlye(inp, newstyle=apfarmstyle):
     # alpacafarm style
     if "### Instruction:" in inp:
         instruction_match = re.search(r'### Instruction:\n(.*?)(### Response:|\Z)', inp, re.DOTALL)
-        instruction = instruction_match.group(1).strip() if instruction_match else None
+        instruction = instruction_match.group(1).strip() if instruction_match else inp
         # Extract Response
         response_match = re.search(r'### Response:.*?(.*?)(### |\Z)', inp, re.DOTALL)
         response = response_match.group(1).strip() if response_match else ""
@@ -31,4 +30,9 @@ def convert_prompstlye(inp, newstyle=apfarmstyle):
         q = inp[len("<user>\n"):]
         instruction, response = q.split("\n<assistant>\n")
     
+    return instruction, response
+    
+# given an input in some style, figure out what style it is, convert it to a new style
+def convert_prompstlye(inp, newstyle=apfarmstyle):
+    instruction, response  = splitter(inp)
     return newstyle(instruction, response)
