@@ -709,23 +709,62 @@ class PPOTrainer(BaseTrainer):
         model_inputs_names = list(model_inputs.keys())
 
         full_kl_penalty = self.config.kl_penalty == "full"
-        dpoplus = self.config.kl_penalty == "dpoplus"
-
+        selfreward = (self.config.kl_penalty == "selfreward")
+        dpoplus = (self.config.kl_penalty == "dpoplus") or selfreward
+        
         all_stats = []
         with nullcontext() if dpoplus else torch.no_grad():
             if dpoplus: 
                 # TODO assume that stuff is getting passed in the right format
                 # we're gonna do all the updates here, in one go
                 
+                # NOTE we're going to break this down a bit, first we're going to do the updates, then we're going to 
                 dpolosses = []
                 all_lps = []
                 all_rlps = []
                 kls = []
                 msk = []
                 print("update for ", self.config.ppo_epochs)
+                # HACK I repurposed this thing to indicate how much of the data to use gold on, and how much to throw out (TODO will need to zero out the other stuff maybe)
+                totbatches = self.config.ratio_threshold if selfreward else self.config.batch_size
+                
+                # flexibility for multiple rounds of updates on our loss
                 for e in range(0, self.config.ppo_epochs):
+                    if selfreward:
+                        print("gold updates on ", totbatches, " out of ", self.config.batch_size)
                     # TODO set things up like this for now, find a way to log stuff
-                    for i in range(0, self.config.batch_size, self.config.mini_batch_size):
+                    for i in range(0, totbatches, self.config.mini_batch_size):
+                        #print("starting batch ", i)
+                        end = i+self.config.mini_batch_size
+                        tmpinps = {k:val[i:end] for k, val in model_inputs.items()}
+                        rmasks = response_masks[i:end] if response_masks is not None else None
+            
+                        all_logprobs, logits_or_none, values, masks = self.batched_forward_pass(
+                            self.model, queries[i:end], responses[i:end], tmpinps, response_masks=rmasks, return_logits=full_kl_penalty,
+                        )
+                        with torch.no_grad() if dpoplus else nullcontext():
+                            with self.optional_peft_ctx():
+                                ref_logprobs, ref_logits_or_none, _, _ = self.batched_forward_pass(
+                                    self.model if self.is_peft_model else self.ref_model,
+                                    queries[i:end], responses[i:end], tmpinps, return_logits=full_kl_penalty,
+                                )
+                        
+                        reflps = torch.sum(ref_logprobs*masks, dim=-1)
+                        pilps = torch.sum(all_logprobs*masks, dim=-1)
+                        dpolosses.append(self.train_minibatch_dpoplus(pilps, reflps))
+                        # use things from the last update
+                        if e==(self.config.ppo_epochs-1):
+                            pilps = pilps.detach()
+                            all_logprobs = all_logprobs.detach()
+                            all_lps.append(all_logprobs)
+                            all_rlps.append(ref_logprobs)
+                            kls.append(pilps-reflps)
+                            masks = masks.detach()
+                            msk.append(masks)
+                # we still have updates left to do 
+                if selfreward:
+                    print("doing remaining updates normally")
+                    for i in range(totbatches, self.config.batch_size, self.config.mini_batch_size):
                         #print("starting batch ", i)
                         end = i+self.config.mini_batch_size
                         tmpinps = {k:val[i:end] for k, val in model_inputs.items()}

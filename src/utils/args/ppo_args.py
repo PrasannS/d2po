@@ -16,6 +16,8 @@ class PPOArguments:
     max_length: Optional[int] = field(default=50, metadata={"help": "maximum length for generation"})
     mini_batch_size: Optional[int] = field(default=1, metadata={"help": "the PPO minibatch size"})
     batch_size: Optional[int] = field(default=32, metadata={"help": "the batch size"})
+    self_reward_steps: Optional[int] = field(default=0, metadata={"help": "how many self reward prefs to get when we get them"})
+    self_reward_rollouts: Optional[int] = field(default=32*5, metadata={"help": "how many self reward prefs to get when we get them"})
     ppo_epochs: Optional[int] = field(default=1, metadata={"help": "the number of ppo epochs"})
     gradient_accumulation_steps: Optional[int] = field(
         default=1, metadata={"help": "the number of gradient accumulation steps"}

@@ -18,6 +18,7 @@ import random
 from statistics import mean
 import json
 import math
+from utils.misc.loss_utils import get_batch_logps
 # HACK setting up forward in alternative fashion
 # # NOTE bring omit_long back
 from utils.eval.rewards import get_synth_rewards, omit_long
@@ -406,7 +407,6 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
             "top_k": 0.0,"top_p": 1, "do_sample": True, "pad_token_id": tokenizer.pad_token_id, "eos_token_id": 100_000,
         }
         min_len = 32
-    
 
     # HACK since I don't like how they set up RL code length stuff
     output_length_sampler = LengthSampler(min_len, script_args.max_length)
@@ -417,6 +417,7 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
     rmname = script_args.reward_model_name
     if 'einstein' in rmname:
         generation_kwargs['logits_processor']=[EinsteinLogitsProc(tokenizer, 4, 2)]
+    tot_rollouts = 0
     
     dpoplus = script_args.kl_penalty=="dpoplus"
     # TODO set up some arg assertions here for rollout strategies, put earlier in training
@@ -476,8 +477,21 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
         with torch.no_grad():
             # TODO more sophisticated sampling logic (maybe get some API call action, using dataset, etc.)
             response_tensors, kl_mask = get_rollouts(ppo_trainer, question_tensors, output_length_sampler, script_args, generation_kwargs,tmpmodel,abs(ratio))
-        
+            tot_rollouts+=len(response_tensors)
+            # model logprobs can be used directly as rewards
+            
         batch["response"] = tokenizer.batch_decode(response_tensors, skip_special_tokens=True)
+        if script_args.self_reward_steps>0: 
+            with torch.no_grad():
+                # TODO can't handle mini-batching yet
+                tmppinps = tokenizer(batch['response'], padding=True, truncation=True).to(current_device)
+                # DO the "batched forward pass from their thing, only risk is it may not work"
+                newlogits = ppo_trainer.model(input_ids=tmppinps.input_ids, attention_mask=tmppinps.attention_mask).logits
+                # can just use the things directly since it's only pairwise
+                selfrewards = get_batch_logps(newlogits, tmppinps.input_ids, label_pad_token_id=tokenizer.pad_token_id).tolist()
+                print("got selfrewards: ", selfrewards)
+            
+                
         if "einstein" in rmname:
             batch['response'] = ["\n".join(r.split("\n")[:2]) for r in batch['response']]
             response_tensors = [tokenizer(r, return_tensors="pt").input_ids.squeeze(0) for r in batch['response']]
@@ -534,7 +548,21 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
             rewards = [rtmps[inds.index(i)] for i in range(len(inds))]
         else:
             rewards = process_reward(texts, rmname, reward_model, script_args, response_tensors, batch)
-        
+        print("mean gold reward is", mean(rewards))
+        if script_args.self_reward_steps>0: 
+            racc = []
+            for itmp in range(0, len(selfrewards), 2):
+                if rewards[itmp]!=rewards[itmp+1]:
+                    racc.append(1 if (rewards[itmp]>rewards[itmp+1])==(selfrewards[itmp]>selfrewards[itmp+1]) else 0)
+            print('accuracy of self-reward is ', mean(racc))
+            assert (selfrewards[0]<=0) and (len(selfrewards)==len(rewards))
+            if script_args.self_reward_rollouts<=tot_rollouts:
+                # last N - k things get their labels readjusted (keep the gold for the rest)
+                for k in range(script_args.self_reward_steps*2, len(rewards)):
+                    rewards[k] = selfrewards[k]
+                # HACK handle the trainer kwargs correctly, this is janky
+                ppo_trainer.config.kl_penalty="selfreward"
+                ppo_trainer.config.ratio_threshold=script_args.self_reward_steps*2
         # different strategies on how to deal with oversampling, make sure to prop through all the variables to avoid errors
         keep_inds = keep_strat(script_args, rewards, list(range(len(rewards)))) # default
         if script_args.save_rollouts:
@@ -626,3 +654,18 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
         except: 
             print("some sort of error (probably OOM), hope that this thing can recover it?")
             torch.cuda.empty_cache()
+            
+        if script_args.self_reward_steps>0: 
+            racc = []
+            for itmp in range(0, len(selfrewards), 2):
+                if rewards[itmp]!=rewards[itmp+1]:
+                    racc.append(1 if (rewards[itmp]>rewards[itmp+1])==(selfrewards[itmp]>selfrewards[itmp+1]) else 0)
+            print('accuracy of self-reward is ', mean(racc))
+            assert selfrewards[0]<=0 
+            if script_args.self_reward_rollouts<=tot_rollouts:
+                # first k things get their labels readjusted
+                for k in range(script_args.self_reward_steps*2):
+                    rewards[k] = selfrewards[k]
+                # HACK handle the trainer kwargs correctly, this is janky
+                ppo_trainer.config.kl_penalty="dpoplus"
+                ppo_trainer.config.ratio_threshold=0

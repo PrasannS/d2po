@@ -30,7 +30,6 @@ else
     GENJSON="none"
 fi
 
-
 echo "config file $CFG"
 accelerate launch --multi_gpu --config_file=$CFG --main_process_port=${4} \
     --num_machines 1  --num_processes 2 \
@@ -50,6 +49,8 @@ accelerate launch --multi_gpu --config_file=$CFG --main_process_port=${4} \
     --temperature=1 \
     --rollout_strategy=normal \
     --gen_bsize=$GBSIZE \
-    --kl_penalty="$KLP" --keep_long=$KEEPLONG \
     --generators_json=$GENJSON \
+    --self_reward_steps=$SRSTEPS \
+    --self_reward_rollouts=$SRROLLOUTS \
+    --kl_penalty="$KLP" --keep_long=$KEEPLONG \
     --save_rollouts=True > "outputs/logs/ppo/${1}_${5}.out" 
