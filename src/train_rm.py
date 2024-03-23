@@ -6,7 +6,7 @@ from transformers import (
     HfArgumentParser,
     TrainerCallback,
 )
-
+import time
 from rlhfutils.rmcode import (
     ScriptArguments, 
     get_trainargs, 
@@ -136,8 +136,11 @@ if len(script_args.extraevaldata)>0:
     else:
         evlist = [script_args.extraevaldata]
     for e in evlist:
+        _, etmp = load_manual(e, "", e)
+        etmp = etmp.map(add_row_index, with_indices=True)
         # use all the eval sets in comma list
-        moreevals.append(tokenize_dset(e, e, script_args, tokenizer)[1])
+        moreevals.append(tokenize_dset(etmp, etmp, script_args, tokenizer)[1])
+    print("ok we have extra datasets: ", evlist)
 
 print("new size of dataset", len(train_dataset))
 
@@ -171,12 +174,31 @@ save_best_model_callback = SaveBestModelCallback(script_args.output_dir)
 # Add the callback to the trainer
 trainer.add_callback(save_best_model_callback)
 
-trainer.train(script_args.resume_from_checkpoint)
+print("initial eval")
+time.sleep(3)
+
 print(trainer.evaluate())
+time.sleep(3)
 for e in range(len(evlist)):
-    print(evlist[e])
+    
+    print("evaluating with", evlist[e])
+    print(trainer.evaluate(moreevals[e]))
+    print("done")
+    
+time.sleep(3)
+
+trainer.train(script_args.resume_from_checkpoint)
+
+print("we're done")
+
+print(trainer.evaluate())
+time.sleep(3)
+for e in range(len(evlist)):
+    
+    print("evaluating with", evlist[e])
     print(trainer.evaluate(moreevals[e]))
 
+time.sleep(3)
 print("Saving last checkpoint of the model")
 model.save_pretrained(script_args.output_dir + "/_peft_last_checkpoint")
     

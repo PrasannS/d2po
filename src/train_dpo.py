@@ -10,6 +10,7 @@ from peft import LoraConfig
 from transformers import AutoTokenizer, HfArgumentParser, TrainingArguments, AutoModelForCausalLM
 
 from trl import DPOTrainer
+import time
 from rlhfutils.data import load_rlcd, load_wgpt, load_stack, inp_origformat, adjust_apf, load_manual
 from utils.args.dpo_args import DPOArguments
 
@@ -103,6 +104,14 @@ if __name__ == "__main__":
         attn_implementation="flash_attention_2"
     )
     
+    refmodel = AutoModelForCausalLM.from_pretrained(
+        "facebook/opt-125m",
+        device_map={"": Accelerator().local_process_index},
+        load_in_8bit=False, 
+        torch_dtype=torch.bfloat16, 
+        attn_implementation="flash_attention_2"
+    )
+    
     # model.config.use_cache = False
 
     if script_args.ignore_bias_buffers:
@@ -122,6 +131,20 @@ if __name__ == "__main__":
 
     # NOTE we're now doing this model
     train_dataset, eval_dataset = load_dpo_data(script_args, script_args.dataset, eval_dataset=script_args.evaldata)
+    
+    moreevals = []
+    evlist = []
+    if len(script_args.extraevaldata)>0:
+        if "," in script_args.extraevaldata:
+            evlist = script_args.extraevaldata.split(",")
+        else:
+            evlist = [script_args.extraevaldata]
+        for e in evlist:
+            _, etmp = load_dpo_data(script_args, e, eval_dataset=e)
+            # use all the eval sets in comma list
+            moreevals.append(etmp)
+        print("ok we have extra datasets: ", evlist)
+    
     
     print("length of dataset is ", len(train_dataset))
     
@@ -146,8 +169,8 @@ if __name__ == "__main__":
         gradient_accumulation_steps=script_args.gradient_accumulation_steps,
         gradient_checkpointing=script_args.gradient_checkpointing,
         learning_rate=script_args.learning_rate,
-        evaluation_strategy="steps",
-        eval_steps=script_args.eval_steps,
+        evaluation_strategy="epoch",
+        # eval_steps=script_args.eval_steps,
         output_dir=script_args.output_dir,
         report_to=script_args.report_to,
         lr_scheduler_type=script_args.lr_scheduler_type,
@@ -179,6 +202,7 @@ if __name__ == "__main__":
     # 5. initialize the DPO trainer
     dpo_trainer = DPOTrainer(
         model,
+        ref_model=refmodel,
         args=training_args,
         beta=script_args.beta,
         train_dataset=train_dataset,
@@ -189,9 +213,33 @@ if __name__ == "__main__":
         max_length=script_args.max_length,
         loss_type=script_args.loss_type,
     )
+    # print("initial eval")
+    # time.sleep(3)
+
+    # print(dpo_trainer.evaluate())
+    # time.sleep(3)
+    # for e in range(len(evlist)):
+        
+    #     print("evaluating with", evlist[e])
+    #     print(dpo_trainer.evaluate(moreevals[e]))
+    #     print("done")
+        
+    # time.sleep(3)
 
     # 6. train
     dpo_trainer.train()
+    
+    # print("we're done")
+
+    # print(dpo_trainer.evaluate())
+    # time.sleep(3)
+    # for e in range(len(evlist)):
+        
+    #     print("evaluating with", evlist[e])
+    #     print(dpo_trainer.evaluate(moreevals[e]))
+
+    # time.sleep(3)
+    print("Saving last checkpoint of the model")
     dpo_trainer.save_model(script_args.output_dir)
 
     # 7. save

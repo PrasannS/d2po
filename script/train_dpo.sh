@@ -8,6 +8,7 @@ accelerate launch --config_file=src/configs/default_single.yaml --main_process_p
     --per_device_eval_batch_size=2 \
     --epochs=5 \
     --evaldata="outputs/data/${1}/${3}" \
+    --extraevaldata=$EXTRAEVAL \
     --learning_rate=3e-5 \
     --beta=$BETA \
     --save_steps=50 \

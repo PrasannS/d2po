@@ -73,6 +73,10 @@ class DPOArguments:
         default=None,
         metadata={"help": "the name of the dataset we're doing"},
     )
+    extraevaldata: Optional[str] = field(
+        default="",
+        metadata={"help": "the name of the dataset we're doing"},
+    )
     promptstyle: Optional[str] = field(
         default="default",
         metadata={"help": "prompt setup style, in [default, onlyans, dircat, ans]"},

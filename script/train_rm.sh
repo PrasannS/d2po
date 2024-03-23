@@ -1,6 +1,7 @@
 
 echo $LR
 echo $BASEMODEL
+
 torchrun --nnodes 1  --nproc_per_node 2 --master_port=${4} src/train_rm.py \
     --model_name=$BASEMODEL \
     --output_dir=outputs/checkpoints/${1}/${2}_${5}_rm/ \
@@ -16,8 +17,8 @@ torchrun --nnodes 1  --nproc_per_node 2 --master_port=${4} src/train_rm.py \
     --save_steps=50 \
     --learning_rate=$LR \
     --eval_first_step=$EVFIRST \
-    --extraevaldata="${$EXTRAEVAL}" \
+    --extraevaldata=$EXTRAEVAL \
     --losstype=$LTYPE \
     --nolora=$NOLORA \
-    --random_reinit=$REINIT > "outputs/logs/rm/${1}_${3}_rm.out"
+    --random_reinit=$REINIT > "outputs/logs/rm/${1}_${2}_rm.out"
 
