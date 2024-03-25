@@ -68,6 +68,10 @@ class PPOArguments:
        default=1,
        metadata={"help": "how many outputs to over-generate per sample"},
     )
+    log_genaccs: Optional[int] = field(
+       default=1,
+       metadata={"help": "how many outputs to over-generate per sample"},
+    )
     temperature: Optional[float] = field(
        default=1,
        metadata={"help": "sampling temperature for generation"},

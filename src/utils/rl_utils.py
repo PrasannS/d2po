@@ -495,7 +495,7 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
             # model logprobs can be used directly as rewards
             
         batch["response"] = tokenizer.batch_decode(response_tensors, skip_special_tokens=True)
-        if script_args.self_reward_steps>0: 
+        if (script_args.self_reward_steps>0) or script_args.log_genaccs: 
             with torch.no_grad():
                 oldinps = tokenizer.batch_decode(batch['input_ids'], skip_special_tokens=True)
                 # TODO can't handle mini-batching yet
@@ -503,7 +503,11 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
                 # DO the "batched forward pass from their thing, only risk is it may not work"
                 newlogits = ppo_trainer.accelerator.unwrap_model(ppo_trainer.model)(input_ids=tmppinps.input_ids, attention_mask=tmppinps.attention_mask)[0]
                 with ppo_trainer.optional_peft_ctx():
-                    reflogits = ppo_trainer.accelerator.unwrap_model(ppo_trainer.ref_model)(input_ids=tmppinps.input_ids, attention_mask=tmppinps.attention_mask)[0]
+                    if ppo_trainer.ref_model is not None:
+                        reflogits = ppo_trainer.accelerator.unwrap_model(ppo_trainer.ref_model)(input_ids=tmppinps.input_ids, attention_mask=tmppinps.attention_mask)[0]
+                    else:
+                        # we're using the basic peft model in this case? 
+                        reflogits = ppo_trainer.accelerator.unwrap_model(ppo_trainer.model)(input_ids=tmppinps.input_ids, attention_mask=tmppinps.attention_mask)[0]
                 # can just use the things directly since it's only pairwise
                 selfrewards = get_batch_logps(newlogits, tmppinps.input_ids, label_pad_token_id=tokenizer.pad_token_id)
                 # normalize by reference (otherwise length will dominate)
@@ -591,7 +595,7 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
         # different strategies on how to deal with oversampling, make sure to prop through all the variables to avoid errors
         keep_inds = keep_strat(script_args, rewards, list(range(len(rewards)))) # default
         if script_args.save_rollouts:
-            roll_dict = {'inputs':batch['query'], 'outputs':batch['response'], 'rewards':rewards, 'keepinds':keep_inds}
+            roll_dict = {'inputs':batch['query'], 'outputs':batch['response'], 'rewards':rewards, 'keepinds':keep_inds, 'selfscos':selfrewards if script_args.log_genaccs else []}
         if epoch==0:
             print(rewards)
             print(keep_inds)
