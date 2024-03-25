@@ -32,8 +32,8 @@ export MBSIZE=8
 export GBSIZE=8
 
 # # Other commands
-export CUDA_VISIBLE_DEVICES=0,1
-sh script/ipoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "functioncontrastivedistill" 29523 "contdistb8_moreupdates_4ups_ipo"
+# export CUDA_VISIBLE_DEVICES=0,1
+# sh script/ipoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "functioncontrastivedistill" 29523 "contdistb8_moreupdates_4ups_ipo"
 # jobs
 # # pkill -f "justoffpolicy_conf_cdist_100_50_activefix"
 # jobs
@@ -52,14 +52,14 @@ sh script/ipoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistil
 
 
 # # #  __________________--
-# # defaults
-# export BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
+defaults
+export BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
 
 
-# export DPOBATCHSIZE=8
-# export MBSIZE=8
-# export GBSIZE=8
+export DPOBATCHSIZE=8
+export MBSIZE=8
+export GBSIZE=8
 
-# # # # Other commands
-# export CUDA_VISIBLE_DEVICES=4,5
-# sh script/ipoplus_script.sh "bagofwords" "ultra" "functionbagofwords" 29526 "justoffpolicy_conf_newalgo_goldb8_4ups_ipo"
+# # # Other commands
+export CUDA_VISIBLE_DEVICES=4,5
+sh script/ipoplus_script.sh "bagofwords" "ultra" "functionbagofwords" 29526 "conf_newalgo_goldb8_4ups_ipo"
