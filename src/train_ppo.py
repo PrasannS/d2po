@@ -2,7 +2,7 @@
 
 import os
 from tqdm import tqdm
-from transformers import HfArgumentParser
+from transformers import HfArgumentParser, AutoModelForCausalLM
 from trl import  PPOTrainer, set_seed
 from datasets import concatenate_datasets
 
@@ -97,10 +97,15 @@ print(dataset[0])
 #     print('extended dataset to size: ', len(dataset))
 
 # We then build the PPOTrainer, passing the model, the reference model, the tokenizer
+if script_args.self_reward_steps>0:
+    print("loading refmod")
+    refmod = model[1]
+    model = model[0]
+    
 ppo_trainer = PPOTrainer(
     config,
     model,
-    ref_model=None,
+    ref_model= refmod if  script_args.self_reward_steps>0 else None,
     tokenizer=tokenizer,
     dataset=dataset,
     data_collator=collator,

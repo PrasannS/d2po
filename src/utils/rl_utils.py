@@ -132,6 +132,17 @@ def load_models(script_args, loadms="rmppo", dev=0):
             torch_dtype=torch.bfloat16,
             attn_implementation="flash_attention_2",
         )
+        if script_args.self_reward_steps > 0: 
+            
+            refmodel = AutoModelForCausalLMWithValueHead.from_pretrained(
+                "facebook/opt-125m",
+                load_in_8bit=True, # re-enable for llama model
+                device_map={"": current_device},
+                peft_config=lora_config, 
+                torch_dtype=torch.bfloat16,
+                attn_implementation="flash_attention_2",
+            )
+            refmodel.eval()
 
         optimizer = None
         if script_args.adafactor:
@@ -185,8 +196,11 @@ def load_models(script_args, loadms="rmppo", dev=0):
     model.gradient_checkpointing_disable()
     # PPO client for API endpoint
     if loadms=="ppo":
+        # standard PPO
+        if script_args.self_reward_steps>0:
+            return config, tokenizer, (model, refmodel), optimizer
         return config, tokenizer, model, optimizer
-    # standard PPO
+    
     return config, tokenizer, model, optimizer, reward_model
 
 def lensco(lval):
@@ -483,12 +497,22 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
         batch["response"] = tokenizer.batch_decode(response_tensors, skip_special_tokens=True)
         if script_args.self_reward_steps>0: 
             with torch.no_grad():
+                oldinps = tokenizer.batch_decode(batch['input_ids'], skip_special_tokens=True)
                 # TODO can't handle mini-batching yet
-                tmppinps = tokenizer(batch['response'], padding=True, truncation=True).to(current_device)
+                tmppinps = tokenizer([batch['response'][i]+oldinps[i] for i in range(len(oldinps))], padding=True, truncation=True, return_tensors="pt").to(current_device)
                 # DO the "batched forward pass from their thing, only risk is it may not work"
-                newlogits = ppo_trainer.model(input_ids=tmppinps.input_ids, attention_mask=tmppinps.attention_mask).logits
+                newlogits = ppo_trainer.accelerator.unwrap_model(ppo_trainer.model)(input_ids=tmppinps.input_ids, attention_mask=tmppinps.attention_mask)[0]
+                with ppo_trainer.optional_peft_ctx():
+                    reflogits = ppo_trainer.accelerator.unwrap_model(ppo_trainer.ref_model)(input_ids=tmppinps.input_ids, attention_mask=tmppinps.attention_mask)[0]
                 # can just use the things directly since it's only pairwise
-                selfrewards = get_batch_logps(newlogits, tmppinps.input_ids, label_pad_token_id=tokenizer.pad_token_id).tolist()
+                selfrewards = get_batch_logps(newlogits, tmppinps.input_ids, label_pad_token_id=tokenizer.pad_token_id)
+                # normalize by reference (otherwise length will dominate)
+                selfrewards = selfrewards - get_batch_logps(reflogits, tmppinps.input_ids, label_pad_token_id=tokenizer.pad_token_id)
+                selfrewards = selfrewards.tolist()
+                
+                # selfrewards, _, values, masks = ppo_trainer.batched_forward_pass(
+                #     ppo_trainer.model, question_tensors, responses_tensors, tmpinps, response_masks=rmasks, return_logits=full_kl_penalty,
+                # )
                 print("got selfrewards: ", selfrewards)
             
                 
@@ -554,8 +578,9 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
             for itmp in range(0, len(selfrewards), 2):
                 if rewards[itmp]!=rewards[itmp+1]:
                     racc.append(1 if (rewards[itmp]>rewards[itmp+1])==(selfrewards[itmp]>selfrewards[itmp+1]) else 0)
-            print('accuracy of self-reward is ', mean(racc))
-            assert (selfrewards[0]<=0) and (len(selfrewards)==len(rewards))
+            if len(racc)>0:
+                print('accuracy of self-reward is ', mean(racc))
+            assert (selfrewards[0]!=0) and (len(selfrewards)==len(rewards))
             if script_args.self_reward_rollouts<=tot_rollouts:
                 # last N - k things get their labels readjusted (keep the gold for the rest)
                 for k in range(script_args.self_reward_steps*2, len(rewards)):
@@ -635,25 +660,25 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
             # TODO need to tune the scaling stuff a little bit
             rewards = [rewards[i]+bonuses[i] for i in range(len(rewards))]
         
-        try:
-            stats = ppo_trainer.step(question_tensors, response_tensors, rewards, kl_mask=kl_mask)
+    
+        stats = ppo_trainer.step(question_tensors, response_tensors, rewards, kl_mask=kl_mask)
+        
+        if script_args.save_rollouts: 
+            # NOTE removing stats so that log_dicts aren't taking a ton of space
+            roll_dict['step'] = epoch
+            rollfile = script_args.output_dir.replace("checkpoints/", "results/rollouts/")
+            while rollfile[-1]=='/':
+                rollfile = rollfile[:-1]
+            rollfile = rollfile+".jsonl"
+            append_dict_to_jsonl(roll_dict, rollfile)
             
-            if script_args.save_rollouts: 
-                # NOTE removing stats so that log_dicts aren't taking a ton of space
-                roll_dict['step'] = epoch
-                rollfile = script_args.output_dir.replace("checkpoints/", "results/rollouts/")
-                while rollfile[-1]=='/':
-                    rollfile = rollfile[:-1]
-                rollfile = rollfile+".jsonl"
-                append_dict_to_jsonl(roll_dict, rollfile)
-                
-            ppo_trainer.log_stats(stats, batch, logrewards)
-            if script_args.save_freq and epoch and epoch % script_args.save_freq == 0:
-                create_missing_folders_for_file(script_args.output_dir + f"step_{epoch}"+"/")
-                ppo_trainer.save_pretrained(script_args.output_dir + f"step_{epoch}")
-        except: 
-            print("some sort of error (probably OOM), hope that this thing can recover it?")
-            torch.cuda.empty_cache()
+        ppo_trainer.log_stats(stats, batch, logrewards)
+        if script_args.save_freq and epoch and epoch % script_args.save_freq == 0:
+            create_missing_folders_for_file(script_args.output_dir + f"step_{epoch}"+"/")
+            ppo_trainer.save_pretrained(script_args.output_dir + f"step_{epoch}")
+        # except: 
+        #     print("some sort of error (probably OOM), hope that this thing can recover it?")
+        #     torch.cuda.empty_cache()
             
         if script_args.self_reward_steps>0: 
             racc = []
@@ -661,7 +686,7 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
                 if rewards[itmp]!=rewards[itmp+1]:
                     racc.append(1 if (rewards[itmp]>rewards[itmp+1])==(selfrewards[itmp]>selfrewards[itmp+1]) else 0)
             print('accuracy of self-reward is ', mean(racc))
-            assert selfrewards[0]<=0 
+            # assert selfrewards[0]<=0 
             if script_args.self_reward_rollouts<=tot_rollouts:
                 # first k things get their labels readjusted
                 for k in range(script_args.self_reward_steps*2):
@@ -669,3 +694,4 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
                 # HACK handle the trainer kwargs correctly, this is janky
                 ppo_trainer.config.kl_penalty="dpoplus"
                 ppo_trainer.config.ratio_threshold=0
+                tot_rollouts=0

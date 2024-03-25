@@ -19,15 +19,43 @@ export ONLYOLDUPDATES=0
 
 # # BEST TECHNIQUE (ALL IN ONE)
 defaults
-export DPOBATCHSIZE=8
+export DPOBATCHSIZE=32
 export MBSIZE=8
-export GBSIZE=8
+export GBSIZE=32
 
 export SRROLLOUTS=$((32))
 export SRSTEPS=$((2))
 export CUDA_VISIBLE_DEVICES=0,1
 
-nohup sh script/newupdateapi.sh "contrastivedistill" "" "tiny_rm" "justoffpolicy_conf_cdist_100_50_activefix" 5010 & 
+export BASEMODEL="outputs/models/nouns/smalldpo"
+# 4 updates on gold whenever we get it
+export PPOUPDATES=4
+
+# sh script/selfreward_script.sh "nouns" "ultra" "functionnouns" 29523 "confnoun_goldb8_selfreward"
+
+
+export SRROLLOUTS=$((32))
+export SRSTEPS=$((4))
+export CUDA_VISIBLE_DEVICES=2,3
+
+export BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
+# 4 updates on gold whenever we get it
+export PPOUPDATES=4
+
+# sh script/selfreward_script.sh "bagofwords" "ultra" "functionbagofwords" 29524 "confbow_goldb8_selfreward"
+
+export SRROLLOUTS=$((32))
+export SRSTEPS=$((4))
+export CUDA_VISIBLE_DEVICES=4,5
+
+export BASEMODEL="outputs/models/contrastivedistill/smalldpo"
+# 4 updates on gold whenever we get it
+export PPOUPDATES=4
+
+# sh script/selfreward_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "functioncontrastivedistill" 29525 "confcdist_goldb8_selfreward"
+
+# sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5001/train" 29523 "justoffpolicy_conf_cdist_10_50_activefix"
+
 
 # # NOUNS
 # defaults
@@ -106,30 +134,30 @@ nohup sh script/newupdateapi.sh "contrastivedistill" "" "tiny_rm" "justoffpolicy
 # jobs
 
 # # NOUNS
-defaults
-export BASEMODEL="outputs/models/nouns/smalldpo"
+# defaults
+# export BASEMODEL="outputs/models/nouns/smalldpo"
 
-export ATYPE="conf"
-export UEPOCHS=3
-export APBSIZE=16
-export GREWARD="nouns"
+# export ATYPE="conf"
+# export UEPOCHS=3
+# export APBSIZE=16
+# export GREWARD="nouns"
 
-export DPOBATCHSIZE=32
-export MBSIZE=32
-export GBSIZE=32
+# export DPOBATCHSIZE=32
+# export MBSIZE=32
+# export GBSIZE=32
 
-export SAMPN=$((32*5))
-export RELABELS=$((2))
-export CUDA_VISIBLE_DEVICES=3
-# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "nouns" "" "tiny_rm" "justoffpolicy_confnoun_newalgo_5_2" 5002 & 
-sleep 20
-# Other commands
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "nouns" "ultra" "http://127.0.0.1:5002/train" 29524 "justoffpolicy_confnoun_newalgo_5_2"
-jobs
-pkill -f "justoffpolicy_confnoun_newalgo_5_2"
-jobs
+# export SAMPN=$((32*5))
+# export RELABELS=$((2))
+# export CUDA_VISIBLE_DEVICES=3
+# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/newupdateapi.sh "nouns" "" "tiny_rm" "justoffpolicy_confnoun_newalgo_5_2" 5002 & 
+# sleep 20
+# # Other commands
+# export CUDA_VISIBLE_DEVICES=6,7
+# sh script/dpoplus_script.sh "nouns" "ultra" "http://127.0.0.1:5002/train" 29524 "justoffpolicy_confnoun_newalgo_5_2"
+# jobs
+# pkill -f "justoffpolicy_confnoun_newalgo_5_2"
+# jobs
 
 # defaults
 

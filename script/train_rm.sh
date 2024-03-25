@@ -20,5 +20,5 @@ torchrun --nnodes 1  --nproc_per_node 2 --master_port=${4} src/train_rm.py \
     --extraevaldata=$EXTRAEVAL \
     --losstype=$LTYPE \
     --nolora=$NOLORA \
-    --random_reinit=$REINIT > "outputs/logs/rm/${1}_${2}_rm.out"
+    --random_reinit=$REINIT > "outputs/logs/rm/${1}_${2}_${3}_rm.out"
 

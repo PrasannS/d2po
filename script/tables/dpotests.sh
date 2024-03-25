@@ -1,6 +1,6 @@
 export BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
 export BETA=0.05
-export CUDA_VISIBLE_DEVICES=5
+export CUDA_VISIBLE_DEVICES=0
 export EXTRAEVAL="outputs/data/bagofwords/latereval"
 
 
@@ -8,8 +8,14 @@ export EXTRAEVAL="outputs/data/bagofwords/latereval"
 # sh script/train_dpo.sh "ultra" "ultra1k" "ultratinyheld" "smalldpo1k" 29526
 
 export EVFIRST=0
-# sh script/train_dpo.sh "bagofwords" "5set1" "latereval" "5set1" 12350 
-# sh script/train_dpo.sh "bagofwords" "5set2" "latereval" "5set2" 12350 
+# sh script/train_dpo.sh "bagofwords" "5set1" "latereval" "5set1lat" 12350 
+# sh script/train_dpo.sh "bagofwords" "5set2" "latereval" "5set2lat" 12350 
+
+# sh script/train_dpo.sh "bagofwords" "50set1" "latereval" "50set1lat" 12350 
+# sh script/train_dpo.sh "bagofwords" "50set2" "latereval" "50set2lat" 12350 
+
+# sh script/train_dpo.sh "bagofwords" "5set3" "latereval" "5set3lat" 12350 
+# sh script/train_dpo.sh "bagofwords" "5set3" "latereval" "5set3lat" 12350 
 # # sh script/train_dpo.sh "bagofwords" "5set3" "smalleval" "5set3" 12350 
 # # sh script/train_dpo.sh "bagofwords" "5set4" "smalleval" "5set4" 12350 
 # # sh script/train_dpo.sh "bagofwords" "5set5" "smalleval" "5set5" 12350 
@@ -55,12 +61,21 @@ export EXTRAEVAL="outputs/data/contrastivedistill/latereval"
 # sh script/train_dpo.sh "ultra" "ultra1k" "ultratinyheld" "smalldpo1k" 29526
 
 export EVFIRST=0
-sh script/train_dpo.sh "contrastivedistill" "5set1" "earlyeval" "5set1" 12350 
-sh script/train_dpo.sh "contrastivedistill" "5set1" "latereval" "5set1lat" 12350 
-# sh script/train_dpo.sh "bagofwords" "5set3" "smalleval" "5set3" 12350 
-# sh script/train_dpo.sh "bagofwords" "5set4" "smalleval" "5set4" 12350 
-# sh script/train_dpo.sh "bagofwords" "5set5" "smalleval" "5set5" 12350 
+sh script/train_dpo.sh "bagofwords" "5set1" "latereval" "5set1lat" 12350 
+sh script/train_dpo.sh "bagofwords" "5set2" "latereval" "5set2lat" 12350 
 
-# sh script/train_rm.sh "ultra" "ultra500" "ultratinyheld" 12350 "tinyrm"
-sh script/train_dpo.sh "contrastivedistill" "50set1" "earlyeval" "50set1" 12350
-sh script/train_dpo.sh "contrastivedistill" "50set2" "latereval" "50set2" 12350
+sh script/train_dpo.sh "bagofwords" "50set1" "latereval" "50set1lat" 12350 
+sh script/train_dpo.sh "bagofwords" "50set2" "latereval" "50set2lat" 12350 
+
+sh script/train_dpo.sh "bagofwords" "5set3" "latereval" "5set3lat" 12350 
+sh script/train_dpo.sh "bagofwords" "5set3" "latereval" "5set3lat" 12350 
+
+# sh script/train_dpo.sh "contrastivedistill" "5set1" "earlyeval" "5set1" 12350 
+# sh script/train_dpo.sh "contrastivedistill" "5set1" "latereval" "5set1lat" 12350 
+# # sh script/train_dpo.sh "bagofwords" "5set3" "smalleval" "5set3" 12350 
+# # sh script/train_dpo.sh "bagofwords" "5set4" "smalleval" "5set4" 12350 
+# # sh script/train_dpo.sh "bagofwords" "5set5" "smalleval" "5set5" 12350 
+
+# # sh script/train_rm.sh "ultra" "ultra500" "ultratinyheld" 12350 "tinyrm"
+# sh script/train_dpo.sh "contrastivedistill" "50set1" "earlyeval" "50set1" 12350
+# sh script/train_dpo.sh "contrastivedistill" "50set2" "latereval" "50set2" 12350
