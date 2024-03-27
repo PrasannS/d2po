@@ -36,6 +36,9 @@ def load_dpo_data(
     eval_dataset: str=None,
     num_proc=12,
 ) -> Dataset:   
+    if len(eval_dataset)==0 or "/"==eval_dataset[-1]:
+        eval_dataset=None
+        print("no eval dataset used")
     # Load in data from the right datasets
     if dataset == 'wgpt':
         train_data, eval_data = load_wgpt()
@@ -169,8 +172,8 @@ if __name__ == "__main__":
         gradient_accumulation_steps=script_args.gradient_accumulation_steps,
         gradient_checkpointing=script_args.gradient_checkpointing,
         learning_rate=script_args.learning_rate,
-        evaluation_strategy="epoch",
-        # eval_steps=script_args.eval_steps,
+        evaluation_strategy="steps",
+        eval_steps=script_args.eval_steps,
         output_dir=script_args.output_dir,
         report_to=script_args.report_to,
         lr_scheduler_type=script_args.lr_scheduler_type,

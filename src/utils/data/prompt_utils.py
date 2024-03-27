@@ -12,6 +12,9 @@ def qaform(q, r=""):
 # tulu format (TODO these methods look refactorable, see if it's worth later)
 def tuluform(q,r=""):
     return "<user>\n"+q+"\n<assistant>\n"+r
+
+def cat(q,r=""):
+    return q+r
     
 def splitter(inp):
     # qa style

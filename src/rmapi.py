@@ -22,7 +22,7 @@ from utils.data.dataproc import add_row_index, create_missing_folders_for_file
 from utils.data.api_data import reuse_batchdata
 from utils.api_utils import get_gold_and_log
 from utils.misc.loss_utils import get_batch_logps
-from utils.data.prompt_utils import convert_prompstlye, apfarmstyle
+from utils.data.prompt_utils import convert_prompstlye, apfarmstyle, cat
 
 from rlhfutils.data import load_manual, tokenize_dset
 import torch
@@ -69,9 +69,13 @@ def train():
         # Get list of strings from the POST request
         data = request.json
         input_texts = data.get("texts", [])
+        
         if script_args.usedpo:
             # switch up prompt style, TODO make more flexible later
-            input_texts = [convert_prompstlye(inpt, apfarmstyle) for inpt in input_texts]
+            if script_args.goldreward=='contrastivedistill':
+                input_texts = [convert_prompstlye(inpt, cat) for inpt in input_texts]
+            else:
+                input_texts = [convert_prompstlye(inpt, apfarmstyle) for inpt in input_texts]
         # for logging / later use
         metrics['all_texts'].extend(input_texts)
         metrics['cinds'].extend([metrics['call_count']]*len(input_texts))

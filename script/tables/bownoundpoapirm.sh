@@ -22,7 +22,7 @@ defaults
 export SEED=2
 
 export ATYPE="conf"
-export UEPOCHS=2
+export UEPOCHS=3
 export APBSIZE=2
 export GREWARD="bagofwords"
 export DPOBASEAPI="facebook/opt-125m"
@@ -45,32 +45,32 @@ export USEDPO=1
 # jobs
 
 # Noun pick up the missing conf baseline
-defaults
-export BASEMODEL="outputs/models/nouns/smalldpo"
+# defaults
+# export BASEMODEL="outputs/models/nouns/smalldpo"
 
-export ATYPE="conf"
-export UEPOCHS=3
-export APBSIZE=2
-export SEED=2
+# export ATYPE="conf"
+# export UEPOCHS=3
+# export APBSIZE=2
+# export SEED=2
 
-export GREWARD="nouns"
+# export GREWARD="nouns"
 
-export DPOBATCHSIZE=32
-export MBSIZE=32
-export GBSIZE=32
+# export DPOBATCHSIZE=32
+# export MBSIZE=32
+# export GBSIZE=32
 
-export SAMPN=$((32*5))
-export RELABELS=$((2))
-export CUDA_VISIBLE_DEVICES=0
-# noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "nouns" "" "smalldpo" "confnoun_newalgo_2_5_seed2_dpoapi" 5003 & 
-sleep 20
-# Other commands
-export CUDA_VISIBLE_DEVICES=1,2
-sh script/dpoplus_script.sh "nouns" "ultra" "http://127.0.0.1:5003/train" 29519 "confnoun_newalgo_2_5_seed2_dpoapi"
-jobs
-pkill -f "confnoun_newalgo_2_5_seed2_dpoapi"
-jobs
+# export SAMPN=$((32*5))
+# export RELABELS=$((2))
+# export CUDA_VISIBLE_DEVICES=0
+# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/newupdateapi.sh "nouns" "" "smalldpo" "confnoun_newalgo_2_5_seed2_dpoapi" 5003 & 
+# sleep 20
+# # Other commands
+# export CUDA_VISIBLE_DEVICES=1,2
+# sh script/dpoplus_script.sh "nouns" "ultra" "http://127.0.0.1:5003/train" 29519 "confnoun_newalgo_2_5_seed2_dpoapi"
+# jobs
+# pkill -f "confnoun_newalgo_2_5_seed2_dpoapi"
+# jobs
 
 # CDIST GET A BASELINE AT SMALLER INTERV LEVEL
 defaults
@@ -86,15 +86,16 @@ export BASEMODEL="outputs/models/contrastivedistill/smalldpo"
 export DPOBATCHSIZE=32
 export MBSIZE=32
 export GBSIZE=32
+export PPOUPDATES=1
 
 export SAMPN=$((32*10))
 export RELABELS=$((5))
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=5
 # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
 nohup sh script/newupdateapi.sh "contrastivedistill" "" "smalldpo" "rand_cdist_10_5_activefixseed2" 5010 & 
 sleep 20
 # Other commands
-export CUDA_VISIBLE_DEVICES=1,2
+export CUDA_VISIBLE_DEVICES=6,7
 sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "http://127.0.0.1:5010/train" 29522 "rand_cdist_10_5_activefixseed2"
 jobs
 pkill -f "rand_cdist_10_5_activefixseed2"

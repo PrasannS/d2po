@@ -47,28 +47,28 @@ BSIZE=1
 # run_script "contrastivedistill" "ppo_justoffpolicy_conf_cdist_goldb8" "/step_" 1000
 # run_script "contrastivedistill" "ppo_justoffpolicy_conf_cdist_goldb8" "/step_" 1500
 
-# BASEMODEL="facebook/opt-125m"
+BASEMODEL="facebook/opt-125m"
 
-BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
-# run_script "bagofwords" "ppo_bow_initrmbaseline" "/step_" 100
-# run_script "bagofwords" "ppo_bow_initrmbaseline" "/step_" 500
-# run_script "bagofwords" "ppo_bow_initrmbaseline" "/step_" 1000
-# run_script "bagofwords" "ppo_bow_initrmbaseline" "/step_" 1500
+# BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
+# run_script "bagofwords" "bow20k_20kdpo_dpo" "/checkpoint-" 1000
+# run_script "bagofwords" "bow20k_20kdpo_dpo" "/checkpoint-" 2000
+# run_script "bagofwords" "bow20k_20kdpo_dpo" "/checkpoint-" 5000
+# run_script "bagofwords" "bow20k_20kdpo_dpo" "/checkpoint-" 10000
 
 # run_script "bagofwords" "ppo_justoffpolicy_conf_newalgo_goldb8" "/step_" 1000
 # run_script "bagofwords" "ppo_justoffpolicy_conf_newalgo_goldb8" "/step_" 1500
 
-BASEMODEL="outputs/models/nouns/smalldpo"
-run_script "nouns" "ppo_noun_initrmbaseline" "/step_" 100
-run_script "nouns" "ppo_noun_initrmbaseline" "/step_" 500
-run_script "nouns" "ppo_noun_initrmbaseline" "/step_" 1000
-run_script "nouns" "ppo_noun_initrmbaseline" "/step_" 1500
+# BASEMODEL="outputs/models/nouns/smalldpo"
+run_script "nouns" "nouns20k_20kdpo_dpo" "/checkpoint-" 1000
+run_script "nouns" "nouns20k_20kdpo_dpo" "/checkpoint-" 2000
+run_script "nouns" "nouns20k_20kdpo_dpo" "/checkpoint-" 5000
+run_script "nouns" "nouns20k_20kdpo_dpo" "/checkpoint-" 10000
 # run_script "nouns" "ppo_justoffpolicy_confnoun_goldb8" "/step_" 1000
 # run_script "nouns" "ppo_justoffpolicy_confnoun_goldb8" "/step_" 1500
 
-DSET="outputs/"data/contrastivedistill/wikionpolicyprompts""
-BASEMODEL="outputs/models/contrastivedistill/smalldpo"
-run_script "contrastivedistill" "ppo_cdist_initrmbaseline" "/step_" 100
-run_script "contrastivedistill" "ppo_cdist_initrmbaseline" "/step_" 500
-run_script "contrastivedistill" "ppo_cdist_initrmbaseline" "/step_" 1000
-run_script "contrastivedistill" "ppo_cdist_initrmbaseline" "/step_" 1500
+DSET="outputs/data/contrastivedistill/wikionpolicyprompts"
+# BASEMODEL="outputs/models/contrastivedistill/smalldpo"
+run_script "contrastivedistill" "opt20k_20kdpo_dpo" "/checkpoint-" 1000
+run_script "contrastivedistill" "opt20k_20kdpo_dpo" "/checkpoint-" 2000
+run_script "contrastivedistill" "opt20k_20kdpo_dpo" "/checkpoint-" 5000
+run_script "contrastivedistill" "opt20k_20kdpo_dpo" "/checkpoint-" 10000
