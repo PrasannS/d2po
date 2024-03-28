@@ -526,7 +526,8 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
         if "math" in script_args.output_dir: 
             print("math proc")
             # manually make sure we don't have a ton of extra stuff for each one of these
-            batch['response'] = ["=".join(batch['response'][indval].split("=")[:batch['query'][i].count("(")+1]) for indval in range(len(batch['response']))]
+            # NOTE got rid of math hack for now
+            # batch['response'] = ["=".join(batch['response'][indval].split("=")[:batch['query'][i].count("(")+1]) for indval in range(len(batch['response']))]
         
         # let's manually avoid using stuff that needs to get omitted
         if script_args.omit_long==1:

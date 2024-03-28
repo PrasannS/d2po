@@ -135,10 +135,21 @@ def calculate_math_rewards(predictions, golds=None, log=False, norm=False):
             edist = edit_distance(pred, gold)
             if norm: 
                 edist = edist / max_length if max_length > 0 else 0
-            reward = 0 - edist
+            reward = 0 - edist*10
+            try:
+                reward = reward - abs(eval(pred) - eval(gold))
+            except: 
+                print("eval failed")
+                reward = reward-100
             rewards.append(reward)
-        for i in range(len(rewards)): 
-            rewards[i] = abs(rewards[i]*(2**(max(5 - i, 1))))*-1
+        szeros = False
+        # for i in range(len(rewards)): 
+        #     # rewards[i] = abs(rewards[i]*(2**(max(5 - i, 1))))*-1
+        #     if szeros:
+        #         rewards[i]=0
+        #     elif rewards[i]!=0:
+        #         szeros = True
+        # rewards[i] = abs(rewards[i])*-1
         return rewards if len(rewards)>1 else rewards+[0]
     except:
         print("error")

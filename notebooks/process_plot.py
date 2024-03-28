@@ -51,14 +51,16 @@ def loadf(fname, gfunct=None, useself=False):
     return tmp
 
 
-def plot_methods(methods, steps=2000, fname="output.pdf", setname="Experiment Results", methmax=True, xlabel='X-axis Label', ylabel='Y-axis Label', dpoline=-10):
+
+def plot_methods(methods, steps=2000, fname="output.pdf", setname="Experiment Results", methmax=True, xlabel='X-axis Label', ylabel='Y-axis Label', dpoline=-10, point_labels=None, points=None):
     # Set the aesthetic style of the plots
     sns.set(style="whitegrid")
     
     # Initialize variables for max_x_value calculation if methmax is True
     max_x_values = []
 
-    colors = ['red', 'blue', 'green']
+    method_colors = ['red', 'blue', 'green', 'orange']
+    point_colors = plt.cm.rainbow(np.linspace(0, 1, len(points)))
 
     cind = 0
 
@@ -66,13 +68,14 @@ def plot_methods(methods, steps=2000, fname="output.pdf", setname="Experiment Re
     plt.figure(figsize=(10, 6))
     
     # Loop through each method to plot
-    for label, (data, ratio) in methods.items():
+    for label, (ratio, data) in methods.items():
         # Normalize the x-axis values
         x_values = np.linspace(0, steps, len(data)) * ratio
         max_x_values.append(max(x_values))
         
         # Plot the method
-        sns.scatterplot(x=x_values, y=data, label=label, s=75, edgecolor=colors[cind])
+        sns.scatterplot(x=x_values, y=data, label=label, s=75, color=method_colors[cind], edgecolor=method_colors[cind])
+        cind = (cind + 1) % len(method_colors)
 
     if methmax:
         # Determine the smallest max_x_value across all methods if required
@@ -81,23 +84,28 @@ def plot_methods(methods, steps=2000, fname="output.pdf", setname="Experiment Re
         # Clear the plot to redraw it with limited x values
         plt.clf()
         plt.figure(figsize=(10, 6))
+        cind = 0  # Reset color index for redrawing
         
         # Redraw each plot with limited x values
-        for label, (data, ratio) in methods.items():
+        for label, (ratio, data) in methods.items():
             x_values = np.linspace(0, steps, len(data)) * ratio
             filtered_x_values, filtered_data = zip(*[(x, y) for x, y in zip(x_values, data) if x <= max_x_value])
-            sns.scatterplot(x=filtered_x_values, y=filtered_data, label=label, s=75, color=colors[cind], edgecolor=colors[cind])
-            cind+=1
+            sns.scatterplot(x=filtered_x_values, y=filtered_data, label=label, s=75, color=method_colors[cind], edgecolor=method_colors[cind])
+            cind = (cind + 1) % len(method_colors)
 
-    if dpoline>-1:
+    if dpoline > -1:
         plt.axhline(y=dpoline, linestyle='dashed', color='black')
 
+    # Plot additional points
+    if points and point_labels:
+        for point, label, color in zip(points, point_labels, point_colors):
+            plt.scatter(point[0], point[1], s=250, color=color, marker='*', edgecolor='black', label=label)
 
     # Enhancements for clarity and aesthetics
     plt.title(setname, fontsize=26, fontweight='bold')
     plt.xlabel(xlabel, fontsize=20)
     plt.ylabel(ylabel, fontsize=20)
-    plt.legend(prop={'size': 16})
+    plt.legend(prop={'size': 16}, loc='best')
     plt.tight_layout()
     
     # Saving the figure in high-quality

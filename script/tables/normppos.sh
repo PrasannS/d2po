@@ -27,36 +27,36 @@ export STEPS=2000
 
 # # Other commands
 export CUDA_VISIBLE_DEVICES=1,2
-sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "contdfixed" 29523 "normppofullrm"
+sh script/dpoplus_script.sh "contrastivedistill" "outputs/data/contrastivedistill/wikionpprompts200k" "contdfixed" 29523 "dpoplusfullrm"
 # jobs
 # # pkill -f "justoffpolicy_conf_cdist_100_50_activefix"
 # jobs
 
 # # NOUNS ___________
-defaults
-export BASEMODEL="outputs/models/nouns/smalldpo"
+# defaults
+# export BASEMODEL="outputs/models/nouns/smalldpo"
 
 
-export DPOBATCHSIZE=32
-export MBSIZE=32
-export GBSIZE=32
+# export DPOBATCHSIZE=32
+# export MBSIZE=32
+# export GBSIZE=32
 
-export STEPS=1000
-# # Other commands
-export CUDA_VISIBLE_DEVICES=1,2
-sh script/dpoplus_script.sh "nouns" "ultra" "dponounsynth_125magnfa" 29523 "normppofullrm"
+# export STEPS=1000
+# # # Other commands
+# export CUDA_VISIBLE_DEVICES=1,2
+# sh script/dpoplus_script.sh "nouns" "ultra" "dponounsynth_125magnfa" 29523 "normppofullrm"
 
 export STEPS=2000
 
-# # #  __________________--
-defaults
-export BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
+# # # #  __________________--
+# defaults
+# export BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
 
 
-export DPOBATCHSIZE=32
-export MBSIZE=32
-export GBSIZE=32
+# export DPOBATCHSIZE=32
+# export MBSIZE=32
+# export GBSIZE=32
 
-# # # Other commands
-export CUDA_VISIBLE_DEVICES=1,2
-sh script/dpoplus_script.sh "bagofwords" "ultra" "expbow50" 29523 "normppofullrm"
+# # # # Other commands
+# export CUDA_VISIBLE_DEVICES=1,2
+# sh script/dpoplus_script.sh "bagofwords" "ultra" "expbow50" 29523 "normppofullrm"

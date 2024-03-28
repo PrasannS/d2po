@@ -17,7 +17,7 @@ defaults() {
 
 export USEDPO=0
 export ONLYOLDUPDATES=0
-export PPOUPDATES=4
+export PPOUPDATES=16
 defaults
 
 # # BEST TECHNIQUE (ALL IN ONE)
@@ -45,7 +45,7 @@ defaults
 
 # NOUNS ___________
 defaults
-export BASEMODEL="outputs/models/nouns/smalldpo"
+# export BASEMODEL="outputs/models/nouns/smalldpo"
 
 export ATYPE="conf"
 export UEPOCHS=3
@@ -64,22 +64,22 @@ export GBSIZE=8
 # sleep 10
 # Other commands
 export CUDA_VISIBLE_DEVICES=2,3
-sh script/dpoplus_script.sh "nouns" "ultra" "functionnouns" 29524 "confnoun_goldb8_4ups"
+# sh script/dpoplus_script.sh "nouns" "ultra" "functionnouns" 29524 "confnoun_goldb8_4ups"
 jobs
 # pkill -f "justoffpolicy_confnoun_newalgo_100small_200testv3"
 jobs
 
 # #  __________________--
-# defaults
-# export BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
+defaults
+export BASEMODEL="outputs/models/bagofwords/bowtiny_dpo"
 # export ATYPE="conf"
 # export UEPOCHS=3
 # export APBSIZE=16
 # export GREWARD="bagofwords"
 
-# export DPOBATCHSIZE=8
-# export MBSIZE=8
-# export GBSIZE=8
+export DPOBATCHSIZE=8
+export MBSIZE=8
+export GBSIZE=8
 
 # export SAMPN=$((32*5))
 # export RELABELS=$((1*5))
@@ -88,7 +88,7 @@ jobs
 # # nohup sh script/newupdateapi.sh "bagofwords" "" "bowtiny_rm" "justoffpolicy_conf_newalgo_500" 5010 & 
 # # # Other commands
 # export CUDA_VISIBLE_DEVICES=4,5
-# sh script/dpoplus_script.sh "bagofwords" "ultra" "functionbagofwords" 29526 "justoffpolicy_conf_newalgo_goldb8_4ups"
+sh script/dpoplus_script.sh "bagofwords" "ultra" "functionbagofwords" 29526 "conf_newalgo_goldb8_16ups"
 # jobs
 # # pkill -f "justoffpolicy_conf_newalgo_500"
 # jobs
