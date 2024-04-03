@@ -38,12 +38,20 @@ def loadf(fname, gfunct=None, useself=False):
                 # NOTE need to set this up as a lambda (so that global var is set correctly)
                 tgolds.append(gfunct([qaform(row['inputs'][i], row['outputs'][i]) for i in range(len(row['inputs']))]))
             tmp['golds'] = tgolds
+            # we only take after first 4?
+            if "selfreward" in fname:
+                print("doing special processing for SR")
+                tmp['rewards'] = [g[8:] for g in tmp['rewards']]
+                tmp['golds'] = [g[8:] for g in tmp['golds']]
+
         else:
             print("not getting some stuff")
-            tmp['golds'] = tmp['rewards']
-    if "selfreward" in fname:
-        print("selfreward overrides")
-        tmp['golds'] = [g[:4] for g in tmp['golds']]
+            if "selfreward" in fname:
+                tmp['golds'] = tmp['rewards']
+                print("selfreward overrides")
+                tmp['golds'] = [g[:8] for g in tmp['golds']]
+            else:
+                tmp['golds'] = tmp['rewards']
     if useself: 
         tmp['rewards'] = tmp['selfscos']
     tmp = tmp.dropna(subset='golds')
@@ -60,7 +68,8 @@ def plot_methods(methods, steps=2000, fname="output.pdf", setname="Experiment Re
     max_x_values = []
 
     method_colors = ['red', 'blue', 'green', 'orange']
-    point_colors = plt.cm.rainbow(np.linspace(0, 1, len(points)))
+    if points !=None:
+        point_colors = plt.cm.rainbow(np.linspace(0, 1, len(points)))
 
     cind = 0
 

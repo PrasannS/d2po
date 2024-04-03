@@ -17,7 +17,7 @@ defaults() {
 
 export USEDPO=0
 export ONLYOLDUPDATES=0
-export PPOUPDATES=16
+export PPOUPDATES=8
 defaults
 
 # # BEST TECHNIQUE (ALL IN ONE)
@@ -49,7 +49,7 @@ defaults
 
 export ATYPE="conf"
 export UEPOCHS=3
-export APBSIZE=16
+export APBSIZE=8
 export GREWARD="nouns"
 
 export DPOBATCHSIZE=8
@@ -88,7 +88,7 @@ export GBSIZE=8
 # # nohup sh script/newupdateapi.sh "bagofwords" "" "bowtiny_rm" "justoffpolicy_conf_newalgo_500" 5010 & 
 # # # Other commands
 # export CUDA_VISIBLE_DEVICES=4,5
-sh script/dpoplus_script.sh "bagofwords" "ultra" "functionbagofwords" 29526 "conf_newalgo_goldb8_16ups"
+sh script/dpoplus_script.sh "bagofwords" "ultra" "functionbagofwords" 29526 "conf_newalgo_goldb8_8ups"
 # jobs
 # # pkill -f "justoffpolicy_conf_newalgo_500"
 # jobs

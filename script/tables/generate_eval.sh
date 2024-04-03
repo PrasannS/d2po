@@ -40,12 +40,28 @@ justgen() {
 }
 
 
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=3
 DSET="outputs/data/ultra/ultraheld5k"
 TOP=100
 BSIZE=1
+BASEMODEL="facebook/opt-125m"
 
-run_script "ultra" "ppo_conf_active_newalgoultra" "/step_" 100
+run_script "bagofwords" "bowbase6k_6kdpo_dpo" "/checkpoint-" 250
+run_script "bagofwords" "bowbase6k_6kdpo_dpo" "/checkpoint-" 500
+run_script "bagofwords" "bowbase6k_6kdpo_dpo" "/checkpoint-" 1000
+run_script "bagofwords" "bowbase6k_6kdpo_dpo" "/checkpoint-" 10000
+
+BASEMODEL="outputs/models/ultra/tiny_dpo_tulu"
+# for i in $(seq 25 25 225)
+# do
+#   run_script "ultra" "ppo_conf_active_newalgoultra" "/step_" "$i"
+# done
+
+
+# for i in $(seq 25 25 125)
+# do
+#   run_script "ultra" "fullgolddpo" "/step_" "$i"
+# done
 
 
 # run_script "bagofwords" "dpoplusbow50rm" "/step_" 100
@@ -107,10 +123,10 @@ BASEMODEL="outputs/models/contrastivedistill/smalldpo"
 #   run_script "contrastivedistill" "ppo_confcdist_goldb8_selfreward" "/step_" "$i"
 # done
 
-for i in $(seq 500 100 2000)
-do
-  run_script "contrastivedistill" "ppo_rand_cdist_10_5_activefixseed2api" "/step_" "$i"
-done
+# for i in $(seq 500 100 2000)
+# do
+#   run_script "contrastivedistill" "ppo_rand_cdist_10_5_activefixseed2api" "/step_" "$i"
+# done
 
 # for i in $(seq 25 25 250)
 # do
@@ -136,9 +152,12 @@ BASEMODEL="facebook/opt-125m"
 # run_script "nouns" "ppo_justoffpolicy_confnoun_goldb8" "/step_" 1000
 # run_script "nouns" "ppo_justoffpolicy_confnoun_goldb8" "/step_" 1500
 
+export CUDA_VISIBLE_DEVICES=6
+
 DSET="outputs/data/contrastivedistill/wikionpolicyprompts"
 # BASEMODEL="outputs/models/contrastivedistill/smalldpo"
-# run_script "contrastivedistill" "opt20k_20kdpo_dpo" "/checkpoint-" 1000
-# run_script "contrastivedistill" "opt20k_20kdpo_dpo" "/checkpoint-" 2000
-# run_script "contrastivedistill" "opt20k_20kdpo_dpo" "/checkpoint-" 5000
-# run_script "contrastivedistill" "opt20k_20kdpo_dpo" "/checkpoint-" 10000
+# BASEMODEL="facebook/opt-125m"
+# run_script "contrastivedistill" "opt4k_4kdpo_dpo" "/checkpoint-" 250
+# run_script "contrastivedistill" "opt4k_4kdpo_dpo" "/checkpoint-" 500
+# run_script "contrastivedistill" "opt4k_4kdpo_dpo" "/checkpoint-" 1000
+# run_script "contrastivedistill" "opt4k_4kdpo_dpo" "/checkpoint-" 10000

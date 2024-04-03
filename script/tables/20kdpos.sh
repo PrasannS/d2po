@@ -18,11 +18,12 @@ export EXTRAEVAL="outputs/data/bagofwords/latereval"
 # export BASEMODEL="outputs/models/contrastivedistill/smalldpo"
 export BASEMODEL="facebook/opt-125m"
 export BETA=0.05
-export CUDA_VISIBLE_DEVICES=4
+export CUDA_VISIBLE_DEVICES=0
 export EXTRAEVAL=""
 
-sh script/train_dpo.sh "nouns" "nouns20k" "" "20kdpo" 12341
-sh script/train_dpo.sh "contrastivedistill" "opt20k" "" "20kdpo" 12341
+# sh script/train_dpo.sh "bagofwords" "bowbase6k" "" "6kdpo" 12341
+export CUDA_VISIBLE_DEVICES=1
+sh script/train_dpo.sh "contrastivedistill" "opt4k" "" "4kdpo" 12342
 
 
 # # sh script/train_dpo.sh "ultra" "ultra500" "ultratinyheld" "smalldpo" 29526
