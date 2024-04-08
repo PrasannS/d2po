@@ -66,6 +66,7 @@ def train():
     
     # for thread safety, TODO sanity check, length-based threshold should work
     with lock:
+        redodata = []
         metrics['call_count'] += 1
         # Get list of strings from the POST request
         data = request.json
@@ -125,7 +126,7 @@ def train():
         print("we have: ", len(metrics['extradata']), "new examples to work with when throwing out equal pairs")
         
         # we're ready to do some kind of active update
-        if script_args.samp_n<=len(metrics['masks']): # TODO HACK this needs to be an actual condition
+        if script_args.samp_n<=len(metrics['masks']):
 
             if script_args.noupdates or (len(metrics['extradata'])==0): 
                 # reset everything now
@@ -137,8 +138,9 @@ def train():
                 assert len(metrics['masks'])==0
                 return jsonify(returnscos)
             # take random data points from what we've been messing with
-            random.shuffle(metrics['extradata'])
-            tmpdset = Dataset.from_list(metrics['extradata'])
+            # random.shuffle(metrics['extradata'])
+            # NOTE added redodata here
+            tmpdset = Dataset.from_list(metrics['extradata']+redodata)
             print("len of new data is ", len(metrics['extradata']))
             
             if script_args.oldupdates:
@@ -197,6 +199,10 @@ def train():
                     
             # reset everything now
             resetkeys = ["extradata", 'inpids', 'masks', 'rscores', 'all_texts', 'cinds']
+            if script_args.redo_batches>0: 
+                redodata.extend(metrics['extradata'])
+                # take certain amount of data to re-use
+                redodata = redodata[-script_args.batch_size*script_args.redo_batches:]
             for r in resetkeys:
                 metrics[r] = []
                 metrics[r].clear()
