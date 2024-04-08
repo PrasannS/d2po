@@ -17,7 +17,8 @@ from utils.eval.annotate_preference import annotate
 from utils.data.dataproc import append_dict_to_jsonl
 from statistics import mean
 from rlhfutils.modeling_override import set_forward
-
+from sentence_transformers import SentenceTransformer
+embmodel = SentenceTransformer('paraphrase-MiniLM-L6-v2', device="cuda")
 
 likemod, liketok = None, None
 slikemod, sliketok = None, None
@@ -30,14 +31,14 @@ def get_synth_rewards(text_list, rmname, metadata=None):
         'reversebow':revbowfunct, 'contpos':contnumpos, 'allobjs':allobjs,
         'nounvstoks':nounvtoks, 'tokdense':tokdensefunct, "einstein":einstein_all, 
         'omission':omitall, 'readinggrade':readall, 'contrastivedistill':contdistill,
-        'math':allmathpreds, 'ultrafeedbackgold': ultrafeedback_gold
+        'math':allmathpreds, 'ultrafeedbackgold': ultrafeedback_gold, 'unique_nns':unique_nns, 
+        'paraphrase':paraphrase
     }
     # TODO big refactor for cleanliness, will need to sanity check effects
     inps = tuple([text_list])
     if 'cont_' in rmname: 
         inps = inps + tuple([False])
     
-
     for r in rmap.keys(): 
         if r in rmname: 
             if (metadata is not None) and (r in ['einstein', 'omission']): 
@@ -52,6 +53,7 @@ def get_synth_rewards(text_list, rmname, metadata=None):
         scores = [s + (1.2**s) for s in scores]
         
     return scores
+
 
 # given a list of texts, score using UF gold annotation scheme (modified to be the 2-thing version of this)
 def ultrafeedback_gold(text_list, savef="test/allannots.jsonl"):
@@ -95,6 +97,7 @@ def ultrafeedback_gold(text_list, savef="test/allannots.jsonl"):
             else:
                 scores.append(score/tot)
     return scores
+
 
 def allmathpreds(text_list, scale=5, log=False):
     if log:
@@ -269,6 +272,47 @@ def scopos(instr, pstr="NN"):
 # return number of nouns in each item from list of strings
 def numnouns(text_list):
     return [float(scopos(s)) for s in text_list]
+
+# contextualized
+def sco_uniquenns(instr, pstr="NN"): 
+        # TODO may need to handle this differently somehow? 
+        
+        # only use response part of str
+        if "Answer:" in instr:
+            istr = instr.split("Answer:")[1]
+        else:
+            istr = instr
+            
+        tokens = word_tokenize(istr)
+        tagged = pos_tag(tokens)
+        unnouns = set()
+        for w, pos in tagged: 
+            if pos.startswith(pstr):
+                unnouns.add(w)
+                
+        return len(unnouns)
+    
+from scipy.spatial.distance import cosine
+    
+# unique nouns, same as nouns but add a set operation on top first (like an easier version of BOW I guess)
+def unique_nns(text_list):
+    return [float(sco_uniquenns(s)) for s in text_list]
+
+def parsco(instr):
+    q, a = instr.split("Answer:")[:2]
+    q = q.strip()
+    a = a.strip()
+    if "Question:" in q: 
+        q = q.replace("Question:", "")
+    emb1 = embmodel.encode(q)
+    emb2 = embmodel.encode(a)
+    simsco = cosine(emb1, emb2)
+    # print(simsco)
+    div = min(len(a), len(q)) if min(len(a), len(q)) > 0 else 1000
+    return 3*(1-simsco) + float(edit_distance(q[:min(len(a), len(q))], a[:min(len(a), len(q))]) / div)
+    
+def paraphrase(text_list):
+    return [float(parsco(s)) for s in text_list]
 
 featlist = [
     {'noun':lambda ex: scopos(ex, "NN"), 'adj':lambda ex: scopos(ex, "JJ"), 'verb':lambda ex: scopos(ex, "V")}, 

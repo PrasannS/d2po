@@ -48,7 +48,7 @@ defaults
 # export BASEMODEL="outputs/models/nouns/smalldpo"
 
 export ATYPE="conf"
-export UEPOCHS=3
+export UEPOCHS=2
 export APBSIZE=8
 export GREWARD="nouns"
 

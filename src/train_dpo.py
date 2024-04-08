@@ -107,13 +107,13 @@ if __name__ == "__main__":
         attn_implementation="flash_attention_2"
     )
     
-    refmodel = AutoModelForCausalLM.from_pretrained(
-        "facebook/opt-125m",
-        device_map={"": Accelerator().local_process_index},
-        load_in_8bit=False, 
-        torch_dtype=torch.bfloat16, 
-        attn_implementation="flash_attention_2"
-    )
+    refmodel = None # AutoModelForCausalLM.from_pretrained(
+    #     "facebook/opt-125m",
+    #     device_map={"": Accelerator().local_process_index},
+    #     load_in_8bit=False, 
+    #     torch_dtype=torch.bfloat16, 
+    #     attn_implementation="flash_attention_2"
+    # )
     
     # model.config.use_cache = False
 

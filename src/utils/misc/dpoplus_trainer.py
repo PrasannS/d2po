@@ -1,4 +1,4 @@
-#### NEW PPOTRAINER MEANT TO HANDLE DPO++
+#### NEW CODE
 
 # Copyright 2022 The HuggingFace Team. All rights reserved.
 #
@@ -39,7 +39,7 @@ from transformers import (
     PreTrainedTokenizerFast,
 )
 
-from trl.core import (
+from ..core import (
     WANDB_PADDING,
     PPODecorators,
     clip_by_value,
@@ -54,8 +54,8 @@ from trl.core import (
     stack_dicts,
     stats_to_np,
 )
-from trl.import_utils import is_torch_greater_2_0, is_xpu_available
-from trl.models import SUPPORTED_ARCHITECTURES, PreTrainedModelWrapper, create_reference_model
+from ..import_utils import is_torch_greater_2_0, is_xpu_available
+from ..models import SUPPORTED_ARCHITECTURES, PreTrainedModelWrapper, create_reference_model
 from . import AdaptiveKLController, BaseTrainer, FixedKLController, PPOConfig, RunningMoments
 from accelerate import DistributedDataParallelKwargs
 
@@ -106,7 +106,6 @@ inputs = tokenizer("Hello, my llama is cute", return_tensors="pt")
 outputs = model(**inputs, labels=inputs["input_ids"])
 ```
 """
-
 
 
 class PPOTrainer(BaseTrainer):
@@ -711,7 +710,8 @@ class PPOTrainer(BaseTrainer):
 
         full_kl_penalty = self.config.kl_penalty == "full"
         selfreward = (self.config.kl_penalty == "selfreward")
-        dpoplus = (self.config.kl_penalty == "dpoplus") or selfreward
+        ipo = (self.config.kl_penalty == "ipo")
+        dpoplus = ((self.config.kl_penalty == "dpoplus") or selfreward) or ipo
         
         all_stats = []
         with nullcontext() if dpoplus else torch.no_grad():
@@ -1196,11 +1196,18 @@ class PPOTrainer(BaseTrainer):
         # TODO verify whether lobprobs are already processed or if masking stuff is needed
         self.model.train()
         cut_ind = int(pi_logprobs.shape[-1]/2)
+        
         beta = self.config.init_kl_coef
-        loss = -1*F.logsigmoid(beta*(pi_logprobs[:cut_ind]-ref_logprobs[:cut_ind])
-                            -beta*(pi_logprobs[cut_ind:]-ref_logprobs[cut_ind:]))
+        logratios = (pi_logprobs[:cut_ind]-ref_logprobs[:cut_ind]) - (pi_logprobs[cut_ind:]-ref_logprobs[cut_ind:])
+        if self.config.kl_penalty=="dpoplus":
+            loss = -1*F.logsigmoid(beta*logratios)
+        # use IPO update instead
+        if self.config.kl_penalty=="ipo":
+            loss = (logratios - 1 / (2 * beta)) ** 2
+            
         loss = loss.sum()
         self.accelerator.backward(loss)
+        
         # HACK commented this out but not sure what it does
         if self.config.max_grad_norm is not None:
             if self.accelerator.sync_gradients:

@@ -9,7 +9,8 @@ run_script() {
     # NOTE that we need to feed things in a specific format
     CKPT_FILE="outputs/checkpoints/${1}/${2}${3}${4}"
     OUTPUT_DIR="outputs/results/genouts/${1}/${2}${4}"
-    
+    echo $CUDA_VISIBLE_DEVICES
+
     python -u src/eval/generate_outs_old.py \
         --basemodel="$BASEMODEL" \
         --dset="$DSET" \
@@ -41,17 +42,54 @@ justgen() {
 
 
 export CUDA_VISIBLE_DEVICES=3
+
 DSET="outputs/data/ultra/ultraheld5k"
 TOP=100
 BSIZE=1
 BASEMODEL="facebook/opt-125m"
+export CUDA_VISIBLE_DEVICES=1
 
-run_script "bagofwords" "bowbase6k_6kdpo_dpo" "/checkpoint-" 250
-run_script "bagofwords" "bowbase6k_6kdpo_dpo" "/checkpoint-" 500
-run_script "bagofwords" "bowbase6k_6kdpo_dpo" "/checkpoint-" 1000
-run_script "bagofwords" "bowbase6k_6kdpo_dpo" "/checkpoint-" 10000
+# run_script "bagofwords" "bowsynth50knozeros_ipo100_ipo" "/checkpoint-" 250
+# run_script "bagofwords" "bowsynth50knozeros_ipo100_ipo" "/checkpoint-" 500
+# run_script "bagofwords" "bowsynth50knozeros_ipo100_ipo" "/checkpoint-" 1000
+# run_script "bagofwords" "bowsynth50knozeros_ipo100_ipo" "/checkpoint-" 5000
+# run_script "bagofwords" "bowsynth50knozeros_ipo100_ipo" "/checkpoint-" 15000
+# run_script "bagofwords" "bowsynth50knozeros_ipo100_ipo" "/checkpoint-" 30000
 
-BASEMODEL="outputs/models/ultra/tiny_dpo_tulu"
+# export CUDA_VISIBLE_DEVICES=2
+# run_script "bagofwords" "bowsynth50knozeros_ipo1_ipo" "/checkpoint-" 250
+# run_script "bagofwords" "bowsynth50knozeros_ipo1_ipo" "/checkpoint-" 500
+# run_script "bagofwords" "bowsynth50knozeros_ipo1_ipo" "/checkpoint-" 1000
+# run_script "bagofwords" "bowsynth50knozeros_ipo1_ipo" "/checkpoint-" 5000
+# run_script "bagofwords" "bowsynth50knozeros_ipo1_ipo" "/checkpoint-" 15000
+# run_script "bagofwords" "bowsynth50knozeros_ipo1_ipo" "/checkpoint-" 30000
+# export CUDA_VISIBLE_DEVICES=3
+
+# run_script "bagofwords" "bowsynth50knozeros_ipo10_ipo" "/checkpoint-" 250
+# run_script "bagofwords" "bowsynth50knozeros_ipo10_ipo" "/checkpoint-" 500
+# run_script "bagofwords" "bowsynth50knozeros_ipo10_ipo" "/checkpoint-" 1000
+# run_script "bagofwords" "bowsynth50knozeros_ipo10_ipo" "/checkpoint-" 5000
+# run_script "bagofwords" "bowsynth50knozeros_ipo10_ipo" "/checkpoint-" 15000
+# run_script "bagofwords" "bowsynth50knozeros_ipo10_ipo" "/checkpoint-" 30000
+# export CUDA_VISIBLE_DEVICES=4
+
+# run_script "bagofwords" "bowsynth50knozeros_ipopt1_ipo" "/checkpoint-" 250
+# run_script "bagofwords" "bowsynth50knozeros_ipopt1_ipo" "/checkpoint-" 500
+# run_script "bagofwords" "bowsynth50knozeros_ipopt1_ipo" "/checkpoint-" 1000
+# run_script "bagofwords" "bowsynth50knozeros_ipopt1_ipo" "/checkpoint-" 5000
+# run_script "bagofwords" "bowsynth50knozeros_ipopt1_ipo" "/checkpoint-" 15000
+# run_script "bagofwords" "bowsynth50knozeros_ipopt1_ipo" "/checkpoint-" 30000
+export CUDA_VISIBLE_DEVICES=5
+
+run_script "bagofwords" "bowsynth50knozeros_ipopt001_ipo" "/checkpoint-" 250
+run_script "bagofwords" "bowsynth50knozeros_ipopt001_ipo" "/checkpoint-" 500
+run_script "bagofwords" "bowsynth50knozeros_ipopt001_ipo" "/checkpoint-" 1000
+run_script "bagofwords" "bowsynth50knozeros_ipopt001_ipo" "/checkpoint-" 5000
+run_script "bagofwords" "bowsynth50knozeros_ipopt001_ipo" "/checkpoint-" 15000
+run_script "bagofwords" "bowsynth50knozeros_ipopt001_ipo" "/checkpoint-" 30000
+
+
+# BASEMODEL="outputs/models/ultra/tiny_dpo_tulu"
 # for i in $(seq 25 25 225)
 # do
 #   run_script "ultra" "ppo_conf_active_newalgoultra" "/step_" "$i"
