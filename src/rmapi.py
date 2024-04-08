@@ -31,7 +31,7 @@ from torch import nn
 import threading
 
 from rlhfutils.rmcode import RewardDataCollatorWithPadding
-import rlhfutils.rewards as rw    
+import rlhfutils.rewards as rw
 
 app = Flask(__name__)
 
@@ -57,6 +57,7 @@ def dpo_infer(dpoinputs):
         rmlps = get_batch_logps(rmlogs, dpoinputs.input_ids, label_pad_token_id=tokenizer.pad_token_id)
         reflps = get_batch_logps(reflogs, dpoinputs.input_ids, label_pad_token_id=tokenizer.pad_token_id)
     return rmlps - reflps
+
 
 BETA=0.05    
 @app.route('/train', methods=['POST'])
@@ -102,24 +103,29 @@ def train():
         assert len(metrics['masks'])==len(metrics['rscores'])
         assert len(metrics['masks'])==len(metrics['all_texts'])
         
+        print("ready to do some RM updates")
+        # only take stuff from the last bit
+        inds = list(range(len(metrics['rscores']) - len(input_texts), len(metrics['rscores']), 2))
+        # can use either random-based or slightly more complex confidence thing for selecting examples to use in active updates
+        # NOTE this will change how selection works a bit
+        if "conf" in script_args.relab_criteria:
+            diffs = list([abs(float(metrics['rscores'][i]-metrics['rscores'][i+1])) for i in range(len(metrics['rscores']) - len(input_texts), len(metrics['rscores']), 2)])
+            inds = list([inds[i] for i in np.argsort(diffs)])
+        elif "rand" in script_args.relab_criteria:
+            random.shuffle(inds)
+        
+        inds = inds[:script_args.relabels]
+        print("we're going to now train with: ", len(inds), " preference pairs out of a possible ", len(metrics['rscores'])/2)
+        
+        # once we've figured out that we want to update things, let's now select something with a strategy, get golds, etc. 
+        returnscos = get_gold_and_log(inds, tokenizer, script_args, metrics)
+        returnscos = list([float(r) for r in returnscos])
+        # TODO need to make sure gold score correction is happening correctly
+        
+        print("we have: ", len(metrics['extradata']), "new examples to work with when throwing out equal pairs")
+        
         # we're ready to do some kind of active update
         if script_args.samp_n<=len(metrics['masks']): # TODO HACK this needs to be an actual condition
-            print("ready to do some RM updates")
-            inds = list(range(0, len(metrics['rscores']), 2))
-            # can use either random-based or slightly more complex confidence thing for selecting examples to use in active updates
-            if "conf" in script_args.relab_criteria:
-                diffs = list([abs(float(metrics['rscores'][i]-metrics['rscores'][i+1])) for i in range(0, len(metrics['rscores']), 2)])
-                inds = list([inds[i] for i in np.argsort(diffs)])
-            elif "rand" in script_args.relab_criteria:
-                random.shuffle(inds)
-            
-            inds = inds[:script_args.relabels]
-            print("we're going to now train with: ", len(inds), " preference pairs out of a possible ", len(metrics['rscores'])/2)
-            
-            # once we've figured out that we want to update things, let's now select something with a strategy, get golds, etc. 
-            get_gold_and_log(inds, tokenizer, script_args, metrics)
-            
-            print("we have: ", len(metrics['extradata']), "new examples to work with when throwing out equal pairs")
 
             if script_args.noupdates or (len(metrics['extradata'])==0): 
                 # reset everything now
