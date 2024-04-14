@@ -10,3 +10,5 @@ wandb/
 *.pdf
 *.json
 *.csv
+.nfs00000000eddbe3680000147d
+checkpoints/

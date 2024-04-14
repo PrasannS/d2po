@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel
 import random
 # GENERAL CODE FOR RLHF TRAINING ON OUR DIFFERENT SETTINGS
 
@@ -31,7 +31,7 @@ from torch import nn
 import threading
 
 from rlhfutils.rmcode import RewardDataCollatorWithPadding
-import rlhfutils.rewards as rw
+import utils.eval.rewards as rw
 
 app = Flask(__name__)
 
@@ -49,6 +49,17 @@ def predict():
         
         return jsonify(scores)
     
+@app.route('/predeurus', methods=['POST'])
+def predeurus():
+    # for thread safety
+    with lock:
+        # Get list of strings from the POST request
+        data = request.json
+        input_texts = data.get("texts", [])
+        
+        return rw.eurus_rm(input_texts)
+
+    
 # get DPO rewards with ref, reward model
 def dpo_infer(dpoinputs):
     with torch.no_grad():
@@ -59,14 +70,18 @@ def dpo_infer(dpoinputs):
     return rmlps - reflps
 
 
-BETA=0.05    
+BETA=0.05
+relabelamt = 0
 @app.route('/train', methods=['POST'])
 def train():
-    global metrics
+    global metrics, relabelamt
     
     # for thread safety, TODO sanity check, length-based threshold should work
     with lock:
         redodata = []
+        # just had a reset before this
+        if len(metrics['all_texts'])==0:
+            relabelamt=script_args.relabels
         metrics['call_count'] += 1
         # Get list of strings from the POST request
         data = request.json
@@ -78,6 +93,8 @@ def train():
                 input_texts = [convert_prompstlye(inpt, cat) for inpt in input_texts]
             else:
                 input_texts = [convert_prompstlye(inpt, apfarmstyle) for inpt in input_texts]
+                
+        script_args.inpsize = len(input_texts)
         # for logging / later use
         metrics['all_texts'].extend(input_texts)
         metrics['cinds'].extend([metrics['call_count']]*len(input_texts))
@@ -115,7 +132,11 @@ def train():
         elif "rand" in script_args.relab_criteria:
             random.shuffle(inds)
         
-        inds = inds[:script_args.relabels]
+        # we need to make sure we're not over-using gold data in this format (TODO I guess simplest for now is to just draw from first chance batch?)
+        inds = inds[:relabelamt]
+        if relabelamt>0:
+            relabelamt=0
+            
         print("we're going to now train with: ", len(inds), " preference pairs out of a possible ", len(metrics['rscores'])/2)
         
         # once we've figured out that we want to update things, let's now select something with a strategy, get golds, etc. 
@@ -245,7 +266,12 @@ if __name__ == '__main__':
     metrics = {'call_count':0, 'label_count':0, 'all_texts':[], 'all_scores':[], 'inpids':[], 'masks':[], 'rscores':[], 'cinds':[], 'extradata':[], 'logdata':[], 'reuses':{}, 'data_pointer':0}
 
     print("goldreward is ", script_args.goldreward)
-    if script_args.trainable:
+    if "eurusrm_fresh" in script_args.reward_model_name:
+        print("fresh eurus thing")
+        rw.sliketok = AutoTokenizer.from_pretrained("openbmb/Eurus-RM-7b")
+        rw.slikemod = AutoModel.from_pretrained("openbmb/Eurus-RM-7b", device_map=0, torch_dtype=torch.bfloat16, trust_remote_code=True).eval()
+        
+    elif script_args.trainable:
         tokenizer, reward_model = load_models(script_args, "train")
         optimizer = torch.optim.AdamW(reward_model.parameters(), lr=script_args.learning_rate)
         # get the data so that we can update things continually
@@ -267,18 +293,27 @@ if __name__ == '__main__':
                 AutoModelForCausalLM.from_pretrained("facebook/opt-125m", device_map=0, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2").eval(),
                 AutoTokenizer.from_pretrained("facebook/opt-125m")
             ]        
+        if "eurusrm" in script_args.goldreward:
+            # RM with its own custom code setup
+            metrics['contdist'] = [
+                AutoModel.from_pretrained("openbmb/Eurus-RM-7b", device_map=0, torch_dtype=torch.bfloat16, trust_remote_code=True).eval(),
+                AutoTokenizer.from_pretrained("openbmb/Eurus-RM-7b"),
+            ]     
+            
         if script_args.usedpo:
             ref_model = AutoModelForCausalLM.from_pretrained(script_args.dpobase, device_map=0, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2").eval()
             
         if script_args.noupdates:
             reward_model.eval()
+        tokenizer.pad_token = tokenizer.eos_token
+        print("size of tokd thing, ", tokenizer("hi there", padding=True, truncation=True, return_tensors='pt').input_ids.shape)
     else:
         # NOTE handle loading everything in, since hyperparams are same for every setting more or less
         tokenizer, reward_model = load_models(script_args, "rm")
 
-    tokenizer.pad_token = tokenizer.eos_token
+        tokenizer.pad_token = tokenizer.eos_token
     
 
-    print("size of tokd thing, ", tokenizer("hi there", padding=True, truncation=True, return_tensors='pt').input_ids.shape)
+        print("size of tokd thing, ", tokenizer("hi there", padding=True, truncation=True, return_tensors='pt').input_ids.shape)
     
     app.run(debug=False, port=script_args.port)

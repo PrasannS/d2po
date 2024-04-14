@@ -32,7 +32,7 @@ def get_synth_rewards(text_list, rmname, metadata=None):
         'nounvstoks':nounvtoks, 'tokdense':tokdensefunct, "einstein":einstein_all, 
         'omission':omitall, 'readinggrade':readall, 'contrastivedistill':contdistill,
         'math':allmathpreds, 'ultrafeedbackgold': ultrafeedback_gold, 'unique_nns':unique_nns, 
-        'paraphrase':paraphrase
+        'paraphrase':paraphrase, 'eurusrm': eurus_rm
     }
     # TODO big refactor for cleanliness, will need to sanity check effects
     inps = tuple([text_list])
@@ -54,7 +54,19 @@ def get_synth_rewards(text_list, rmname, metadata=None):
         
     return scores
 
+def doinfer(inptext):
+    with torch.no_grad():
+        # I think this is it?
+        inptext = inptext.replace("Question: ", "[INST] ").replace("\n\nAnswer:", " [\INST] ")
+        inp = sliketok(inptext, return_tensors="pt").to(slikemod.device)
+        return slikemod(**inp).item()
 
+def eurus_rm(text_list): 
+    print("eurus rws")
+    results = [doinfer(t) for t in text_list]
+    torch.cuda.empty_cache()
+    return results
+    
 # given a list of texts, score using UF gold annotation scheme (modified to be the 2-thing version of this)
 def ultrafeedback_gold(text_list, savef="test/allannots.jsonl"):
     inputs = []
@@ -135,7 +147,7 @@ def calculate_math_rewards(predictions, golds=None, log=False, norm=False):
             print("p", pred, "g", gold)
             max_length = max(len(pred), len(gold))
             # make reward without accounting for spaces
-            edist = edit_distance(pred, gold)
+            edist = editdistance.eval(pred, gold)
             if norm: 
                 edist = edist / max_length if max_length > 0 else 0
             reward = 0 - edist

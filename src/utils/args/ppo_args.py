@@ -69,7 +69,7 @@ class PPOArguments:
        metadata={"help": "how many outputs to over-generate per sample"},
     )
     log_genaccs: Optional[int] = field(
-       default=1,
+       default=0,
        metadata={"help": "how many outputs to over-generate per sample"},
     )
     temperature: Optional[float] = field(
@@ -85,4 +85,16 @@ class PPOArguments:
     keep_long: Optional[int] = field(
        default=0,
        metadata={"help": "how many outputs to over-generate per sample"},
+    )
+    replay_freq: Optional[int] = field(
+       default=1000000,
+       metadata={"help": "how many outputs to over-generate per sample"},
+    )
+    replay_updates: Optional[int] = field(
+       default=0,
+       metadata={"help": "how many batches to dedicate to replay once we start an update"},
+    )
+    replay_batches: Optional[int] = field(
+       default=3,
+       metadata={"help": "how big of a buffer to keep (multiplied with batch size) for resampling with replays"},
     )

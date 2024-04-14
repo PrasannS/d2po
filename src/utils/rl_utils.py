@@ -10,7 +10,7 @@ from transformers import (
     LlamaTokenizer,
     pipeline,
 )
-from transformers import AutoModelForSequenceClassification, AutoModelForCausalLM
+from transformers import AutoModelForSequenceClassification, AutoModelForCausalLM, AutoModel
 from peft import TaskType
 import numpy as np
 from nltk.tokenize import word_tokenize
@@ -388,7 +388,12 @@ def process_reward(texts, rmname, reward_model, script_args, response_tensors, m
 
 def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
     
+    if script_args.replay_freq<=0:
+        script_args.replay_freq=1000000
+    
     # global likemod, liketok, slikemod, sliketok
+    # store this for use later
+    replay_buffer = {'responses': [], 'rewards':[], 'questions':[], 'klmask':[]}
     
     # the `generate` function of the trained model.
     generation_kwargs = { 
@@ -411,8 +416,12 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
         rw.liketok = AutoTokenizer.from_pretrained("facebook/opt-1.3b")
         rw.slikemod = AutoModelForCausalLM.from_pretrained("facebook/opt-125m", device_map=current_device, torch_dtype=torch.bfloat16).eval()
         rw.sliketok = AutoTokenizer.from_pretrained("facebook/opt-125m")
-        
-    #get_unwrapped(ppo_trainer).to(current_device)
+    if "eurusrm" in script_args.reward_model_name:
+        print("eurus RM loading")
+        # RM with its own custom code setup
+        rw.slikemod = AutoModel.from_pretrained("openbmb/Eurus-RM-7b", device_map=current_device, torch_dtype=torch.bfloat16, trust_remote_code=True).eval()
+        rw.sliketok = AutoTokenizer.from_pretrained("openbmb/Eurus-RM-7b")
+
     rollout_tokens_dict = {}
     min_len = script_args.max_length-2
     if script_args.trl_weird==1:
@@ -440,6 +449,8 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
     
     tmpmodel = None
     ratio = 0
+    normalsteps = 0
+    cur_replays = 0
     for epoch, batch in tqdm(enumerate(ppo_trainer.dataloader)):
         if sjson['intervals'][curstrat+1]<epoch:
             print("HOORAY! we're adding another rollout sampler into the mix")
@@ -453,6 +464,18 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
         if epoch >= script_args.steps:
             break
         
+        if (normalsteps+1)%script_args.replay_freq==0:
+            print("starting replay")
+            cur_replays = script_args.replay_updates
+            normalsteps+=1
+
+        # this will now allow us to do multiple replay steps for every normal step
+        doreplay = cur_replays>0
+        cur_replays = cur_replays - 1
+        if doreplay==False:
+            print("normal step")
+            normalsteps+=1
+
         print(batch.keys())
         # get rid of shared context within individual things? 
         if script_args.rollout_strategy=="random":
@@ -465,6 +488,7 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
         
         new_questions = []
         new_qs = {k:[] for k in batch.keys()}
+            
         # we're doing something to oversample 
         if script_args.oversample>1: 
             # this should do the trick, since dpo batch sizes are always in higher terms?
@@ -489,13 +513,29 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
             print(tokenizer.batch_decode(question_tensors, skip_special_tokens=True))
     
         with torch.no_grad():
-            # TODO more sophisticated sampling logic (maybe get some API call action, using dataset, etc.)
-            response_tensors, kl_mask = get_rollouts(ppo_trainer, question_tensors, output_length_sampler, script_args, generation_kwargs,tmpmodel,abs(ratio))
-            tot_rollouts+=len(response_tensors)
+            if doreplay:
+                # NOTE we don't need to waste time on another rollout, just replace with old data
+                # TODO sanity check that these are paired. If not move things earlier into the pipeline
+                inds = list(range(0, len(replay_buffer['responses']), 2))
+                random.shuffle(inds)
+                inds = inds[:int(script_args.batch_size/2)] # should be fine for PPO too?
+                newinds = []
+                for tmpind in inds:
+                    newinds.extend([tmpind, tmpind+1])
+                response_tensors = [replay_buffer['responses'][tmpind] for tmpind in newinds]
+                question_tensors = [replay_buffer['questions'][tmpind] for tmpind in newinds]
+                kl_mask = [replay_buffer['klmask'][tmpind] for tmpind in newinds]
+                rewards = [replay_buffer['rewards'][tmpind] for tmpind in newinds]
+            else:
+                # TODO more sophisticated sampling logic (maybe get some API call action, using dataset, etc.)
+                response_tensors, kl_mask = get_rollouts(ppo_trainer, question_tensors, output_length_sampler, script_args, generation_kwargs,tmpmodel,abs(ratio))
+                tot_rollouts+=len(response_tensors)
             # model logprobs can be used directly as rewards
             
         batch["response"] = tokenizer.batch_decode(response_tensors, skip_special_tokens=True)
         if (script_args.self_reward_steps>0) or script_args.log_genaccs: 
+            # TODO can get rid of this in the doreplay case maybe? do that if it's taking up too much time or smth
+            # TODO need to throw mini-batch-size thing on this
             with torch.no_grad():
                 oldinps = tokenizer.batch_decode(batch['input_ids'], skip_special_tokens=True)
                 # TODO can't handle mini-batching yet
@@ -513,13 +553,9 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
                 # normalize by reference (otherwise length will dominate)
                 selfrewards = selfrewards - get_batch_logps(reflogits, tmppinps.input_ids, label_pad_token_id=tokenizer.pad_token_id)
                 selfrewards = selfrewards.tolist()
-                
-                # selfrewards, _, values, masks = ppo_trainer.batched_forward_pass(
-                #     ppo_trainer.model, question_tensors, responses_tensors, tmpinps, response_masks=rmasks, return_logits=full_kl_penalty,
-                # )
+
                 print("got selfrewards: ", selfrewards)
             
-                
         if "einstein" in rmname:
             batch['response'] = ["\n".join(r.split("\n")[:2]) for r in batch['response']]
             response_tensors = [tokenizer(r, return_tensors="pt").input_ids.squeeze(0) for r in batch['response']]
@@ -576,16 +612,21 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
                 # undo the shuffling so that stuff matches
             rewards = [rtmps[inds.index(i)] for i in range(len(inds))]
         else:
-            rewards = process_reward(texts, rmname, reward_model, script_args, response_tensors, batch)
+            if doreplay==False: # don't get reward on replay
+                rewards = process_reward(texts, rmname, reward_model, script_args, response_tensors, batch)
+        rewards = [float(r) for r in rewards]
         print("mean gold reward is", mean(rewards))
-        if script_args.self_reward_steps>0: 
+        
+        if (script_args.self_reward_steps>0) and doreplay==False: 
             racc = []
+            # check self-reward acc
             for itmp in range(0, len(selfrewards), 2):
                 if rewards[itmp]!=rewards[itmp+1]:
                     racc.append(1 if (rewards[itmp]>rewards[itmp+1])==(selfrewards[itmp]>selfrewards[itmp+1]) else 0)
             if len(racc)>0:
                 print('accuracy of self-reward is ', mean(racc))
             assert (selfrewards[0]!=0) and (len(selfrewards)==len(rewards))
+            # NOTE code for prepping self-reward stuff for updates
             if script_args.self_reward_rollouts<=tot_rollouts:
                 # last N - k things get their labels readjusted (keep the gold for the rest)
                 for k in range(script_args.self_reward_steps*2, len(rewards)):
@@ -593,6 +634,21 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
                 # HACK handle the trainer kwargs correctly, this is janky
                 ppo_trainer.config.kl_penalty="selfreward"
                 ppo_trainer.config.ratio_threshold=script_args.self_reward_steps*2
+
+        # TODO make this argument, find a way to increase how much it happens
+        if (script_args.replay_freq>0) and (doreplay==False):
+            print("adding replay batches")
+            # NOTE handle self-reward, gold case
+            lim = script_args.self_reward_steps*2 if script_args.self_reward_steps>0 else len(response_tensors)
+            replay_buffer['responses'].extend(response_tensors[:lim])
+            replay_buffer['questions'].extend(question_tensors[:lim])
+            assert replay_buffer['questions'][0].tolist()==replay_buffer['questions'][1].tolist()
+            replay_buffer['klmask'].extend(kl_mask[:lim])
+            replay_buffer['rewards'].extend(rewards[:lim])
+            for r in replay_buffer.keys():
+                # keep a certain level of recency
+                replay_buffer[r] = replay_buffer[r][-script_args.batch_size*script_args.replay_batches:]
+                
         # different strategies on how to deal with oversampling, make sure to prop through all the variables to avoid errors
         keep_inds = keep_strat(script_args, rewards, list(range(len(rewards)))) # default
         if script_args.save_rollouts:
@@ -664,8 +720,7 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
             print("Bonuses: ", bonuses)
             # TODO need to tune the scaling stuff a little bit
             rewards = [rewards[i]+bonuses[i] for i in range(len(rewards))]
-        
-    
+            
         stats = ppo_trainer.step(question_tensors, response_tensors, rewards, kl_mask=kl_mask)
         
         if script_args.save_rollouts: 
@@ -681,9 +736,6 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
         if script_args.save_freq and epoch and epoch % script_args.save_freq == 0:
             create_missing_folders_for_file(script_args.output_dir + f"step_{epoch}"+"/")
             ppo_trainer.save_pretrained(script_args.output_dir + f"step_{epoch}")
-        # except: 
-        #     print("some sort of error (probably OOM), hope that this thing can recover it?")
-        #     torch.cuda.empty_cache()
             
         if script_args.self_reward_steps>0: 
             racc = []
@@ -700,3 +752,5 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
                 ppo_trainer.config.kl_penalty="dpoplus"
                 ppo_trainer.config.ratio_threshold=0
                 tot_rollouts=0
+                
+        
