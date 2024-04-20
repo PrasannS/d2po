@@ -56,7 +56,7 @@ export UEPOCHS=3
 export APBSIZE=2
 export GREWARD="eurusrm"
 
-export DPOBATCHSIZE=8
+export DPOBATCHSIZE=32
 export MBSIZE=2
 export GBSIZE=8
 export USEDPO=0
@@ -65,14 +65,14 @@ export ONLYOLDUPDATES=0
 
 export SAMPN=$((32))
 export RELABELS=$((2))
+export SFREQ=5
 export CUDA_VISIBLE_DEVICES=0
 # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "eurusrm" "" "eurusrm_fresh" "eurusrmbaseline" 5004 & 
-
+nohup sh script/newupdateapi.sh "eurusrm" "" "eurusrm_fresh" "eurusrmbaseline32save2" 5004 & 
 # # # Other commands
-export CUDA_VISIBLE_DEVICES=4,5
-sh script/dpoplus_replay.sh "eurusrm" "ultra" "http://127.0.0.1:5004/predeurus" 29528 "eurusrmbaseline"
+export CUDA_VISIBLE_DEVICES=1,2
+sh script/dpoplus_replay.sh "eurusrm" "ultra" "http://127.0.0.1:5004/predeurus" 29528 "eurusrmbaseline32save2"
 
 jobs
-pkill -f "eurusrmbaseline"
+pkill -f "eurusrmbaseline32save2"
 jobs

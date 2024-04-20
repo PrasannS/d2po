@@ -55,13 +55,13 @@ export GBSIZE=8
 defaults
 export BASEMODEL="facebook/opt-125m"
 
-export DPOBATCHSIZE=8
-export MBSIZE=8
-export GBSIZE=8
+export DPOBATCHSIZE=32
+export MBSIZE=32
+export GBSIZE=32
 
 # # # Other commands
-export CUDA_VISIBLE_DEVICES=1,2
-sh script/dpoplus_script.sh "paraphrase" "ultra" "functionparaphrase" 29526 "conf_newalgo_goldb8_4ups_v2"
+export CUDA_VISIBLE_DEVICES=6,7
+sh script/dpoplus_script.sh "paraphrase" "outputs/data/paraphrase/parappoinps" "functionparaphrase" 29526 "opogold32paranew"
 
 # export CUDA_VISIBLE_DEVICES=3,4
 # sh script/dpoplus_script.sh "functionunique_nns" "ultra" "functionunique_nns" 29527 "conf_newalgo_goldb8_4ups_ipo"

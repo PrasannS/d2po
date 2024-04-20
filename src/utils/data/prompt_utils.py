@@ -17,21 +17,27 @@ def cat(q,r=""):
     return q+r
     
 def splitter(inp):
-    # qa style
-    if ("Question:" in inp) and "Answer:" in inp: 
-        instruction, response = inp.split("\n\nAnswer: ")
-        instruction = instruction[len("Question: "):]
+    instruction = inp
+    response = ""
+    # tulu style
+    if "<user>" in inp: 
+        q = inp[len("<user>\n"):]
+        instruction, response = q.split("\n<assistant>\n")
     # alpacafarm style
-    if "### Instruction:" in inp:
+    elif "### Instruction:" in inp:
         instruction_match = re.search(r'### Instruction:\n(.*?)(### Response:|\Z)', inp, re.DOTALL)
         instruction = instruction_match.group(1).strip() if instruction_match else inp
         # Extract Response
         response_match = re.search(r'### Response:.*?(.*?)(### |\Z)', inp, re.DOTALL)
         response = response_match.group(1).strip() if response_match else ""
-    # tulu style
-    if "<user>" in inp: 
-        q = inp[len("<user>\n"):]
-        instruction, response = q.split("\n<assistant>\n")
+    # qa style
+    elif ("Question:" in inp) and "Answer:" in inp: 
+        instruction, response = inp.split("Answer:")[:2]
+        instruction = instruction.strip()
+        response = response.strip()
+        instruction = instruction[len("Question: "):]
+    
+    
     
     return instruction, response
     

@@ -52,13 +52,13 @@ defaults() {
 defaults
 export SEED=0
 
-export ATYPE="conf"
+export ATYPE="rand"
 export UEPOCHS=3
 export APBSIZE=2
 export GREWARD="eurusrm"
 
 export DPOBATCHSIZE=32
-export MBSIZE=2
+export MBSIZE=32
 export GBSIZE=32
 export USEDPO=0
 export PPOUPDATES=2
@@ -68,16 +68,24 @@ export SAMPN=$((32))
 export RELABELS=$((2))
 export CUDA_VISIBLE_DEVICES=0
 # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-export BASEMODEL="outputs/models/math/mathbigdata125"
+# export BASEMODEL="outputs/models/math/mathbigdata125"
 
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_replay.sh "math" "outputs/data/math/moreppoinps" "functionmath" 29530 "mathattempt1"
+# export CUDA_VISIBLE_DEVICES=6,7
+# sh script/dpoplus_replay.sh "math" "outputs/data/math/moreppoinps" "functionmath" 29530 "mathattempt1"
 
 
-export BASEMODEL="outputs/models/math/mathbigdata1b"
-export DPOBATCHSIZE=32
-export MBSIZE=2
-export GBSIZE=16
+# export BASEMODEL="outputs/models/math/mathbigdata1b"
+# export DPOBATCHSIZE=8
+# export MBSIZE=8
+# export GBSIZE=8
 
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_replay.sh "math" "outputs/data/math/moreppoinps" "functionmath" 29530 "mathattempt2big"
+# export CUDA_VISIBLE_DEVICES=6,7
+# sh script/dpoplus_replay.sh "math" "outputs/data/math/mathppoinps200k" "functionmath" 29530 "mathattempt2bigf2"
+
+export BASEMODEL="facebook/opt-125m"
+export DPOBATCHSIZE=8
+export MBSIZE=8
+export GBSIZE=8
+
+export CUDA_VISIBLE_DEVICES=4,5
+sh script/dpoplus_script.sh "paraphrase" "ultra" "functionparaphrase" 29526 "moreparaphrase"

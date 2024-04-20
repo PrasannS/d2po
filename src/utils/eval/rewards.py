@@ -55,9 +55,11 @@ def get_synth_rewards(text_list, rmname, metadata=None):
     return scores
 
 def doinfer(inptext):
+    # print(inptext)
     with torch.no_grad():
         # I think this is it?
         inptext = inptext.replace("Question: ", "[INST] ").replace("\n\nAnswer:", " [\INST] ")
+        # print(inptext)
         inp = sliketok(inptext, return_tensors="pt").to(slikemod.device)
         return slikemod(**inp).item()
 
@@ -129,7 +131,7 @@ def stripexpr(expr):
 # given a string with predictions (can alternatively pass in golds), get back a step-by-step reward
 def calculate_math_rewards(predictions, golds=None, log=False, norm=False):
     predictions = stripexpr(predictions)# predictions.replace("Question:", "").replace("\n\nAnswer:", "")
-    
+    # print("in here, doing math")
     try:
         if type(predictions)==str:
             predictions = [p.strip() for p in predictions.split("=")]
@@ -144,7 +146,7 @@ def calculate_math_rewards(predictions, golds=None, log=False, norm=False):
             print(golds)
         rewards = []
         for pred, gold in zip(predictions, golds):
-            print("p", pred, "g", gold)
+            # print("p", pred, "g", gold)
             max_length = max(len(pred), len(gold))
             # make reward without accounting for spaces
             edist = editdistance.eval(pred, gold)
@@ -168,7 +170,7 @@ def calculate_math_rewards(predictions, golds=None, log=False, norm=False):
         return rewards if len(rewards)>1 else rewards+[0]
     except:
         print("error")
-        return [0,0,0]
+        return [-100,-100,-100]
 
 def solve_expression(expression):
     steps = [expression]
@@ -310,6 +312,15 @@ from scipy.spatial.distance import cosine
 def unique_nns(text_list):
     return [float(sco_uniquenns(s)) for s in text_list]
 
+def edist(q, a): 
+    qset = set([s.lower() for s in word_tokenize(q)])
+    aset = set([s.lower() for s in word_tokenize(a)])
+    both = qset.union(aset)
+    div = (2*max(len(aset), len(qset)))
+    if div==0:
+        div = 1000
+    return len(both)/div
+
 def parsco(instr):
     q, a = instr.split("Answer:")[:2]
     q = q.strip()
@@ -320,9 +331,9 @@ def parsco(instr):
     emb2 = embmodel.encode(a)
     simsco = cosine(emb1, emb2)
     # print(simsco)
-    div = min(len(a), len(q)) if min(len(a), len(q)) > 0 else 1000
-    return 3*(1-simsco) + float(edit_distance(q[:min(len(a), len(q))], a[:min(len(a), len(q))]) / div)
-    
+    # div = min(len(a), len(q)) if min(len(a), len(q)) > 0 else 1000
+    return (1-simsco) + 2*edist(q, a)
+
 def paraphrase(text_list):
     return [float(parsco(s)) for s in text_list]
 
@@ -330,6 +341,7 @@ featlist = [
     {'noun':lambda ex: scopos(ex, "NN"), 'adj':lambda ex: scopos(ex, "JJ"), 'verb':lambda ex: scopos(ex, "V")}, 
     {'min':lambda sco: -1*sco, 'max':lambda sco:sco},
 ]
+
 def contnumpos(text_list):
     def scocont(instr):
         try:

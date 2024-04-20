@@ -31,6 +31,7 @@ else
 fi
 
 
+echo $SFREQ
 echo "config file $CFG"
 accelerate launch --multi_gpu --config_file=$CFG --main_process_port=${4} \
     --num_machines 1  --num_processes 2 \
@@ -39,7 +40,7 @@ accelerate launch --multi_gpu --config_file=$CFG --main_process_port=${4} \
     --dataset_name="${2}" \
     --reward_model_name=$REWARD \
     --adafactor=False \
-    --save_freq=25 \
+    --save_freq=$SFREQ \
     --max_length=$MLEN --batch_size=$DPOBATCHSIZE \
     --mini_batch_size=$MBSIZE \
     --gradient_accumulation_steps=1 \

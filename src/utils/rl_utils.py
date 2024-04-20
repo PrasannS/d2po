@@ -122,7 +122,7 @@ def load_models(script_args, loadms="rmppo", dev=0):
             lam=0.95,
             kl_penalty=script_args.kl_penalty, 
             remove_unused_columns=False,
-            tracker_project_name=rname
+            tracker_project_name=rname, 
         )
         model = AutoModelForCausalLMWithValueHead.from_pretrained(
             script_args.model_name,
