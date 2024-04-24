@@ -6,12 +6,12 @@ accelerate launch --config_file=src/configs/default_single.yaml --main_process_p
     --per_device_train_batch_size=2 \
     --gradient_accumulation_steps=4 \
     --per_device_eval_batch_size=2 \
-    --epochs=5 \
+    --epochs=2 \
     --evaldata="outputs/data/${1}/${3}" \
     --extraevaldata=$EXTRAEVAL \
     --learning_rate=1e-4 \
     --beta=$BETA \
-    --save_steps=250 \
+    --save_steps=25 \
     --eval_steps=250 > "outputs/logs/dpo/${1}_${4}_dpo.out"
 
 # export CUDA_VISIBLE_DEVICES=4,5

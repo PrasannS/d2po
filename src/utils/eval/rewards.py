@@ -322,6 +322,9 @@ def edist(q, a):
     return len(both)/div
 
 def parsco(instr):
+    if "Answer:" not in instr: 
+        print("weirdness")
+        return 0
     q, a = instr.split("Answer:")[:2]
     q = q.strip()
     a = a.strip()

@@ -1,7 +1,7 @@
 # OFF POLICY VERSIONS OF ALL THE ACTIVE THINGS: 
 # IMPORTANT BASELINE, WHAT HAPPENS WITH MORE DPO UPDATES ON THE SAME THING
 export CFG=src/configs/ppo_2gpu.yaml
-export STEPS=2000
+export STEPS=251
 export SUPDATES=10000000
 export SEED=0
 export KEEPLONG=10
@@ -60,8 +60,25 @@ export MBSIZE=32
 export GBSIZE=32
 
 # # # Other commands
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "paraphrase" "outputs/data/paraphrase/parappoinps" "functionparaphrase" 29526 "opogold32paranew"
+# export CUDA_VISIBLE_DEVICES=6,7
+# sh script/dpoplus_script.sh "paraphrase" "outputs/data/paraphrase/parappoinps" "functionparaphrase" 29526 "opogold32paranew"
 
-# export CUDA_VISIBLE_DEVICES=3,4
-# sh script/dpoplus_script.sh "functionunique_nns" "ultra" "functionunique_nns" 29527 "conf_newalgo_goldb8_4ups_ipo"
+export SFREQ=12
+export SEED=4
+export CUDA_VISIBLE_DEVICES=6,7
+sh script/dpoplus_script.sh "unique_nns" "ultra" "functionunique_nns" 29527 "conf_newalgo_goldb8_4ups_dpos4"
+export SEED=5
+sh script/dpoplus_script.sh "unique_nns" "ultra" "functionunique_nns" 29527 "conf_newalgo_goldb8_4ups_dpos5"
+
+# export SFREQ=12
+# export DPOBATCHSIZE=8
+# export BASEMODEL="outputs/models/math/mathbigdata1b"
+# export MBSIZE=8
+# export GBSIZE=8
+# export PPOUPDATES=2
+# export MLEN=75
+# export CUDA_VISIBLE_DEVICES=6,7
+# export SEED=3
+# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "functionmath" 29526 "opobase8mathseed3"
+# export SEED=4
+# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "functionmath" 29526 "opobase8mathseed4"

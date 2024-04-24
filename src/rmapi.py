@@ -69,12 +69,12 @@ def dpo_infer(dpoinputs):
         reflps = get_batch_logps(reflogs, dpoinputs.input_ids, label_pad_token_id=tokenizer.pad_token_id)
     return rmlps - reflps
 
-
 BETA=0.05
 relabelamt = 0
+rmready=True
 @app.route('/train', methods=['POST'])
 def train():
-    global metrics, relabelamt
+    global metrics, relabelamt, rmready
     
     # for thread safety, TODO sanity check, length-based threshold should work
     with lock:
@@ -135,7 +135,13 @@ def train():
         # we need to make sure we're not over-using gold data in this format (TODO I guess simplest for now is to just draw from first chance batch?)
         inds = inds[:relabelamt]
         if relabelamt>0:
-            relabelamt=0
+            olen = len(inds)
+            if relabelamt>olen:
+                relabelamt = relabelamt-olen
+            else:
+                relabelamt=0
+        
+            
             
         print("we're going to now train with: ", len(inds), " preference pairs out of a possible ", len(metrics['rscores'])/2)
         
@@ -146,9 +152,10 @@ def train():
         
         print("we have: ", len(metrics['extradata']), "new examples to work with when throwing out equal pairs")
         
+        # break apart collection / training on data from clearing
         # we're ready to do some kind of active update
-        if script_args.samp_n<=len(metrics['masks']):
-
+        if rmready and relabelamt==0:
+            rmready=False
             if script_args.noupdates or (len(metrics['extradata'])==0): 
                 # reset everything now
                 resetkeys = ["extradata", 'inpids', 'masks', 'rscores', 'all_texts', 'cinds']
@@ -220,15 +227,10 @@ def train():
                     
             # reset everything now
             resetkeys = ["extradata", 'inpids', 'masks', 'rscores', 'all_texts', 'cinds']
-            if script_args.redo_batches>0: 
+            if script_args.redo_batches>0:
                 redodata.extend(metrics['extradata'])
                 # take certain amount of data to re-use
                 redodata = redodata[-script_args.batch_size*script_args.redo_batches:]
-            for r in resetkeys:
-                metrics[r] = []
-                metrics[r].clear()
-
-            assert len(metrics['masks'])==0
             
             # add back data that needs to be added back
             # newdata = list([metrics['extradata'][ind] for ind in readd_inds])
@@ -240,9 +242,17 @@ def train():
                 print("DISABLING RM UPDATES FROM THIS POINT")
                 script_args.noupdates=True
                 reward_model.eval()
+        # only clear / move on once we've hit samp_n steps
+        if script_args.samp_n<=len(metrics['masks']):
+            resetkeys = ["extradata", 'inpids', 'masks', 'rscores', 'all_texts', 'cinds']
+            rmready=True
+            for r in resetkeys:
+                metrics[r] = []
+                metrics[r].clear()
+
+            assert len(metrics['masks'])==0
                 
         if metrics['call_count'] % script_args.save_freq == 0 and (script_args.noupdates==False):
-            
             create_missing_folders_for_file(script_args.output_dir+"/step_"+str(metrics['call_count'])+"/")
             reward_model.save_pretrained(script_args.output_dir+"/step_"+str(metrics['call_count']))
         

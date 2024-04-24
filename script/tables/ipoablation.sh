@@ -16,7 +16,7 @@ export EXTRAEVAL="outputs/data/bagofwords/latereval"
 
 
 # export BASEMODEL="outputs/models/contrastivedistill/smalldpo"
-export BASEMODEL="facebook/opt-125m"
+export BASEMODEL="/u/prasanns/research/active-rlhf/outputs/models/ultra/tiny_dpo_tulu"
 export BETA=0.1
 export CUDA_VISIBLE_DEVICES=0
 export EXTRAEVAL=""
@@ -37,9 +37,9 @@ export EXTRAEVAL=""
 # export CUDA_VISIBLE_DEVICES=2
 # sh script/train_ipo.sh "bagofwords" "bowsynth50knozeros" "" "ipo10" 12344
 
-export BETA=0.001
-export CUDA_VISIBLE_DEVICES=3
-sh script/train_ipo.sh "bagofwords" "bowsynth50knozeros" "" "ipopt001" 12345
+export BETA=0.1
+export CUDA_VISIBLE_DEVICES=4
+sh script/train_dpo.sh "eurusrm" "offpolicydata1k" "" "euroffv1" 12345
 
 
 

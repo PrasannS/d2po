@@ -31,14 +31,14 @@ export PPOUPDATES=1
 export ONLYOLDUPDATES=0
 
 export SAMPN=$((32))
-export RELABELS=$((2))
-export CUDA_VISIBLE_DEVICES=1
+export RELABELS=$((4))
+export CUDA_VISIBLE_DEVICES=4
 # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "eurusrm" "" "tiny_rm" "mainalgo_32_2" 5003 & 
-
+nohup sh script/newupdateapi.sh "eurusrm" "" "tiny_rm" "mainalgo_32_4justoffpolicy" 5003 & 
+export SFREQ=25
 # Other commands
-export CUDA_VISIBLE_DEVICES=2,3
-sh script/dpoplus_script.sh "eurusrm" "ultra" "http://127.0.0.1:5003/train" 29519 "mainalgo_32_2"
+export CUDA_VISIBLE_DEVICES=5,6
+sh script/dpoplus_script.sh "eurusrm" "ultra" "http://127.0.0.1:5003/train" 29519 "mainalgo_32_4justoffpolicy"
 jobs
-pkill -f "mainalgo_32_2"
+pkill -f "mainalgo_32_4justoffpolicy"
 jobs

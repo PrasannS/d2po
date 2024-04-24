@@ -41,8 +41,12 @@ def sconoundf(df, function, trunc=True):
 def tokenproc(inp, lim=True, function=None):
     #print(inp)
     #print(function)
-    inp = convert_prompstlye(inp, qaform)
-    if function=="eurusrm":
+    if function=="math":
+        return inp
+    else:
+        inp = convert_prompstlye(inp, qaform)
+        
+    if (function=="eurusrm") or (function=="paraphrase"):
         return inp
     
     if (function is None) or "contpos" not in function:
