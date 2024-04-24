@@ -3,10 +3,15 @@
 #     --base_model_name="facebook/opt-125m" \
 #     --output_name="/u/prasanns/research/active-rlhf/outputs/models/math/mathbigdata125"
 
+# python src/merge_adapter.py \
+#     --adapter_model_name="/u/prasanns/research/active-rlhf/outputs/checkpoints/math/dynarm_1bjustoffpolicyrmupper/step_3000" \
+#     --base_model_name="outputs/models/math/mathbigdata1b" \
+#     --output_name="outputs/models/math/math50krm"
+
 python src/merge_adapter.py \
-    --adapter_model_name="/u/prasanns/research/active-rlhf/outputs/checkpoints/math/dynarm_1bjustoffpolicyrmupper/step_3000" \
-    --base_model_name="outputs/models/math/mathbigdata1b" \
-    --output_name="outputs/models/math/math50krm"
+    --adapter_model_name="/u/prasanns/research/active-rlhf/outputs/checkpoints/unique_nns/warmdata_tinyrmnew_rm/checkpoint-340" \
+    --base_model_name="facebook/opt-125m" \
+    --output_name="outputs/models/unique_nn/newtiny_rm"
 
 # python scripts/merge_peft_adapter.py \
 #     --adapter_model_name="/u/prasanns/research/rlhf-length-biases/checkpoints/bagofwords/3kprefs_smalldpo_dpo/checkpoint-500" \

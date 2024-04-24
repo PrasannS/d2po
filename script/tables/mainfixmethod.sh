@@ -18,7 +18,7 @@ defaults() {
 defaults
 export SEED=2
 export ATYPE="conf"
-export UEPOCHS=2
+export UEPOCHS=8
 export APBSIZE=16
 export GREWARD="bagofwords"
 
@@ -95,39 +95,49 @@ export MBSIZE=8
 export GBSIZE=8
 export BASEMODEL="facebook/opt-125m"
 export MLEN=50
-export SAMPN=$((80))
-export RELABELS=$((28))
+export SAMPN=$((50))
+export RELABELS=$((5))
 export GREWARD="unique_nns"
 
-export CUDA_VISIBLE_DEVICES=1
-export SEED=4
-nohup sh script/newupdateapi.sh "unique_nns" "" "tiny_rm" "noun40_28_seed4" 5005 & 
+# export CUDA_VISIBLE_DEVICES=1
+# export SEED=4
+# nohup sh script/newupdateapi.sh "unique_nns" "" "newtiny_rm" "noun25_5_seed4" 5006 & 
+# # # Other commands
+# export CUDA_VISIBLE_DEVICES=2,4
+# sh script/dpoplus_script.sh "unique_nns" "ultra" "http://127.0.0.1:5006/train" 29523 "noun25_5_seed4"
+# jobs
+# pkill -f "noun25_5_seed4"
+# jobs
+export SAMPN=$((60))
+export RELABELS=$((5))
+export CUDA_VISIBLE_DEVICES=2
+export SEED=2
+nohup sh script/newupdateapi.sh "unique_nns" "" "newtiny_rm" "noun60_5_seed2" 5010 & 
 # # Other commands
-export CUDA_VISIBLE_DEVICES=2,4
-sh script/dpoplus_script.sh "unique_nns" "ultra" "http://127.0.0.1:5005/train" 29522 "noun40_28_seed4"
+export CUDA_VISIBLE_DEVICES=3,4
+sh script/dpoplus_script.sh "unique_nns" "ultra" "http://127.0.0.1:5010/train" 29547 "noun60_5_seed2"
 jobs
-pkill -f "noun40_28_seed4"
+pkill -f "noun60_5_seed2"
 jobs
+# export CUDA_VISIBLE_DEVICES=1
+# export SEED=5
+# nohup sh script/newupdateapi.sh "unique_nns" "" "tiny_rm" "noun40_28_seed5" 5005 & 
+# # # Other commands
+# export CUDA_VISIBLE_DEVICES=2,4
+# sh script/dpoplus_script.sh "unique_nns" "ultra" "http://127.0.0.1:5005/train" 29522 "noun40_28_seed5"
+# jobs
+# pkill -f "noun40_28_seed5"
+# jobs
 
-export CUDA_VISIBLE_DEVICES=1
-export SEED=5
-nohup sh script/newupdateapi.sh "unique_nns" "" "tiny_rm" "noun40_28_seed5" 5005 & 
-# # Other commands
-export CUDA_VISIBLE_DEVICES=2,4
-sh script/dpoplus_script.sh "unique_nns" "ultra" "http://127.0.0.1:5005/train" 29522 "noun40_28_seed5"
-jobs
-pkill -f "noun40_28_seed5"
-jobs
-
-export CUDA_VISIBLE_DEVICES=1
-export SEED=6
-nohup sh script/newupdateapi.sh "unique_nns" "" "tiny_rm" "noun40_282_seed6" 5005 & 
-# # Other commands
-export CUDA_VISIBLE_DEVICES=2,4
-sh script/dpoplus_script.sh "unique_nns" "ultra" "http://127.0.0.1:5005/train" 29522 "noun40_28_seed6"
-jobs
-pkill -f "noun40_28_seed6"
-jobs
+# export CUDA_VISIBLE_DEVICES=1
+# export SEED=6
+# nohup sh script/newupdateapi.sh "unique_nns" "" "tiny_rm" "noun40_282_seed6" 5005 & 
+# # # Other commands
+# export CUDA_VISIBLE_DEVICES=2,4
+# sh script/dpoplus_script.sh "unique_nns" "ultra" "http://127.0.0.1:5005/train" 29522 "noun40_28_seed6"
+# jobs
+# pkill -f "noun40_28_seed6"
+# jobs
 
 
 # export BASEMODEL="facebook/opt-125m"

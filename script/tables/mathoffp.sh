@@ -51,21 +51,21 @@ export GREWARD="math"
 export SEED=5
 
 # export BETA=0.1
-# export CUDA_VISIBLE_DEVICES=6
+export CUDA_VISIBLE_DEVICES=6
 # export EXTRAEVAL=""
-# sh script/train_dpo.sh "math" "offp50k" "" "mathoffv1" 12345
+sh script/train_dpo.sh "math" "offp50k" "" "mathoffv1" 12345
 
-export CUDA_VISIBLE_DEVICES=0,3
-sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "math50k" 29522 "opooff"
-jobs
-pkill -f "opooff"
-jobs
+# export CUDA_VISIBLE_DEVICES=0,3
+# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "math50k" 29522 "opooff"
+# jobs
+# pkill -f "opooff"
+# jobs
 
-export CUDA_VISIBLE_DEVICES=0,3
-sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "math50k" 29522 "normppooff"
-jobs
-pkill -f "normppooff"
-jobs
+# export CUDA_VISIBLE_DEVICES=0,3
+# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "math50k" 29522 "normppooff"
+# jobs
+# pkill -f "normppooff"
+# jobs
 
 
 
