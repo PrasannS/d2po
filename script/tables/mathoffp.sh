@@ -51,9 +51,22 @@ export GREWARD="math"
 export SEED=5
 
 # export BETA=0.1
-export CUDA_VISIBLE_DEVICES=6
+export CUDA_VISIBLE_DEVICES=0,1
+# sh script/train_rm.sh "unique_nns" "warmdata" "uniqueval" 12351 "tinyrmnew"
+export BSIZE=32
+export LR=1e-4
+export LTYPE="normal"
+export EVFIRST=0
+export NOLORA=0
+export REINIT=0
+
+# sh script/train_rm.sh "math" "offp40knotie" "held" 12345 "mathbigoffp"
+
+export CUDA_VISIBLE_DEVICES=1
 # export EXTRAEVAL=""
-sh script/train_dpo.sh "math" "offp50k" "" "mathoffv1" 12345
+# sh script/train_dpo.sh "math" "offp50k" "" "mathoffv1" 12345
+# sh script/train_dpo.sh "math" "mathwarm" "held" "mathinitstart" 12345
+
 
 # export CUDA_VISIBLE_DEVICES=0,3
 # sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "math50k" 29522 "opooff"

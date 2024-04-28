@@ -64,21 +64,28 @@ export GBSIZE=32
 # sh script/dpoplus_script.sh "paraphrase" "outputs/data/paraphrase/parappoinps" "functionparaphrase" 29526 "opogold32paranew"
 
 export SFREQ=12
-export SEED=4
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "unique_nns" "ultra" "functionunique_nns" 29527 "conf_newalgo_goldb8_4ups_dpos4"
-export SEED=5
-sh script/dpoplus_script.sh "unique_nns" "ultra" "functionunique_nns" 29527 "conf_newalgo_goldb8_4ups_dpos5"
+# export SEED=4
+# export CUDA_VISIBLE_DEVICES=6,7
+# sh script/dpoplus_script.sh "unique_nns" "ultra" "functionunique_nns" 29527 "conf_newalgo_goldb8_4ups_dpos4"
+# export SEED=5
+# sh script/dpoplus_script.sh "unique_nns" "ultra" "functionunique_nns" 29527 "conf_newalgo_goldb8_4ups_dpos5"
 
 # export SFREQ=12
 # export DPOBATCHSIZE=8
-# export BASEMODEL="outputs/models/math/mathbigdata1b"
+export BASEMODEL="outputs/models/math/mathbigdata1b"
+export BASEMODEL="facebook/opt-125m"
 # export MBSIZE=8
 # export GBSIZE=8
 # export PPOUPDATES=2
 # export MLEN=75
-# export CUDA_VISIBLE_DEVICES=6,7
-# export SEED=3
-# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "functionmath" 29526 "opobase8mathseed3"
-# export SEED=4
-# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "functionmath" 29526 "opobase8mathseed4"
+export STEPS=1000
+export CUDA_VISIBLE_DEVICES=1,2
+export SEED=3
+sh script/dpoplus_script.sh "unique_nns" "ultra" "newbig" 29526 "opormbaseunn"
+export SEED=3
+sh script/dpoplus_script.sh "unique_nns" "ultra" "newbig" 29526 "normppormbaseunn"
+
+export SEED=3
+# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "mathbig40koff" 29526 "opormbasemath"
+export SEED=3
+# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "mathbig40koff" 29526 "normppormbasemath"

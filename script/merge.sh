@@ -8,10 +8,20 @@
 #     --base_model_name="outputs/models/math/mathbigdata1b" \
 #     --output_name="outputs/models/math/math50krm"
 
+# python src/merge_adapter.py \
+#     --adapter_model_name="/u/prasanns/research/active-rlhf/outputs/checkpoints/math/mathwarm_mathinitstart_rm/checkpoint-240" \
+#     --base_model_name="outputs/models/math/mathbigdata1b" \
+#     --output_name="outputs/models/math/mathwarm1b"
+
+# python src/merge_adapter.py \
+#     --adapter_model_name="/u/prasanns/research/active-rlhf/outputs/checkpoints/math/offp40knotie_mathbigoffp_rm/checkpoint-6700" \
+#     --base_model_name="outputs/models/math/mathbigdata1b" \
+#     --output_name="outputs/models/math/mathbig40koff_rm"
+
 python src/merge_adapter.py \
-    --adapter_model_name="/u/prasanns/research/active-rlhf/outputs/checkpoints/unique_nns/warmdata_tinyrmnew_rm/checkpoint-340" \
+    --adapter_model_name="/u/prasanns/research/active-rlhf/outputs/checkpoints/unique_nns/fullnpref_bigrmnew40k_rm/checkpoint-6800" \
     --base_model_name="facebook/opt-125m" \
-    --output_name="outputs/models/unique_nn/newtiny_rm"
+    --output_name="outputs/models/unique_nns/newbigrm"
 
 # python scripts/merge_peft_adapter.py \
 #     --adapter_model_name="/u/prasanns/research/rlhf-length-biases/checkpoints/bagofwords/3kprefs_smalldpo_dpo/checkpoint-500" \

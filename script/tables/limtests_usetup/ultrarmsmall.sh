@@ -1,4 +1,4 @@
-export CUDA_VISIBLE_DEVICES=4,5
+export CUDA_VISIBLE_DEVICES=1,2
 export LR=1e-4
 export BASEMODEL="facebook/opt-125m"
 export NOLORA=False
@@ -8,7 +8,7 @@ export BSIZE=32
 export EVFIRST=1
 
 # # sh script/train_rm.sh "ultra" "ultra500" "ultratinyheld" 12350 "tinyrm"
-sh script/train_rm.sh "unique_nns" "warmdata" "uniqueval" 12351 "tinyrmnew"
+sh script/train_rm.sh "unique_nns" "fullnpref" "uniqueval" 12351 "bigrmnew40k"
 
 # torchrun --nnodes 1  --nproc_per_node 2 --master_port=12350 src/train_rm.py \
 #     --model_name=$BASEMODEL \

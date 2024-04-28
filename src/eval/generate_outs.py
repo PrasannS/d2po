@@ -84,7 +84,7 @@ def generate_outs(model, results, generation_kwargs, qsize=1, savefile="tmp.json
                     generated_output = []
                     print("Got an OOM error")
                     torch.cuda.empty_cache()
-                    for i in range(0, 6, 2):
+                    for i in range(0, qsize, 2):
                         model_inputs = tokenizer(qtemps[i:i+2], return_tensors='pt', padding=True, truncation=True).to(model.device)
                         generated_output.append(model.generate(**model_inputs, **generation_kwargs))
                 for gen in generated_output:
@@ -193,7 +193,7 @@ def main(args):
         if args.bsize>1:
             multi_generate_outs(model, results, generation_kwargs, args.bsize, fname)
         else:
-            generate_outs(model, results, generation_kwargs, 6, fname)
+            generate_outs(model, results, generation_kwargs, args.genbatch, fname)
         del model
         del origmodel
         torch.cuda.empty_cache()
@@ -211,6 +211,7 @@ if __name__=="__main__":
     parser.add_argument('--bottom', type=int, help='bottom of range to generate for')
     parser.add_argument('--top', type=int, help='top of range to generate for')
     parser.add_argument('--bsize', type=int, help='outputs per prompt')
+    parser.add_argument('--genbatch', type=int, default=6, help='when doing generation in batches, how big should batches')
     parser.add_argument('--maxlen', type=int, default=256, help='decoding max length')
     parser.add_argument("--cklist", type=str, default=None, help='list of checkpoint numbers we want to do stuff for')
     parser.add_argument("--respsonly", type=int, default=0, help='list of checkpoint numbers we want to do stuff for')

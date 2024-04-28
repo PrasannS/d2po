@@ -33,7 +33,11 @@ MLEN=256
 # run_script "ultra" "comprm" "/step_" 250
 
 export CUDA_VISIBLE_DEVICES=4
-run_script "ultra" "golddpo" "/step_" 25
+run_script "eurusrm" "ppo_mainalgo_32_2" "/step_" 675
+# export CUDA_VISIBLE_DEVICES=5
+
+# run_script "eurusrm" "ppo_eurusrmbaseline" "/step_" 275
+
 
 # export CUDA_VISIBLE_DEVICES=5
 # run_script "ultra" "ppomorefreq" "/step_" 75

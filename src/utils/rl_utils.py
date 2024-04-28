@@ -625,7 +625,9 @@ def train_loop(script_args, ppo_trainer, reward_model, tokenizer, qaform):
                     racc.append(1 if (rewards[itmp]>rewards[itmp+1])==(selfrewards[itmp]>selfrewards[itmp+1]) else 0)
             if len(racc)>0:
                 print('accuracy of self-reward is ', mean(racc))
-            assert (selfrewards[0]!=0) and (len(selfrewards)==len(rewards))
+            if (selfrewards[0]==0):
+                print("warning, self reward is 0, indicating that ref mode and base model are the same heer")
+            assert  (len(selfrewards)==len(rewards))
             # NOTE code for prepping self-reward stuff for updates
             if script_args.self_reward_rollouts<=tot_rollouts:
                 # last N - k things get their labels readjusted (keep the gold for the rest)

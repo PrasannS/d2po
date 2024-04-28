@@ -18,7 +18,8 @@ run_script() {
         --fname="$OUTPUT_DIR" \
         --bottom=$BOTTOM --top=$TOP  \
         --bsize=$BSIZE \
-        --maxlen=$MLEN
+        --maxlen=$MLEN \
+        --genbatch=$GBATCH
 
     python -u src/evalgold.py  --fname="${OUTPUT_DIR}.jsonl" --gfunct="${1}"
 }
@@ -31,8 +32,113 @@ BASEMODEL="/u/prasanns/research/active-rlhf/outputs/models/math/mathbigdata1b"
 TOP=200
 BSIZE=1
 MLEN=75
+GBATCH=32
+export CUDA_VISIBLE_DEVICES=1
+# /u/prasanns/research/active-rlhf/outputs/checkpoints/math/offp50k_mathoffv1_dpo
+# for i in $(seq 12 12 240)
+# do
+#   run_script "math" "ppo_opobase8mathseed3" "/step_" "$i"
+# done
+
+# for i in $(seq 12 12 240)
+# do
+#   run_script "math" "ppo_opobase8mathseed4" "/step_" "$i"
+# done
+# export CUDA_VISIBLE_DEVICES=2
+# # export CUDA_VISIBLE_DEVICES=1
+
+# for i in $(seq 25 25 475)
+# do
+#   run_script "math" "ppo_1bbig_128_8_seed3" "/step_" "$i"
+# done
+
+# for i in $(seq 25 25 475)
+# do
+#   run_script "math" "ppo_1bbig_128_8_seed4" "/step_" "$i"
+# done
+
+### Done with math auto-gens, now do nouns
+export CUDA_VISIBLE_DEVICES=6
+# export CUDA_VISIBLE_DEVICES=1
+BASEMODEL="facebook/opt-125m"
+DSET="outputs/data/ultra/ultraheld5k"
+MLEN=50
+# for i in $(seq 12 12 240)
+# do
+#   run_script "unique_nns" "ppo_conf_newalgo_goldb8_4ups_dpos4" "/step_" "$i"
+# done
+
+# for i in $(seq 12 12 240)
+# do
+#   run_script "unique_nns" "ppo_conf_newalgo_goldb8_4ups_dpos5" "/step_" "$i"
+# done
+# for i in $(seq 50 50 750)
+# do
+#   run_script "unique_nns" "ppo_noun60_5_seed4" "/step_" "$i"
+# done
+
+# for i in $(seq 50 50 950)
+# do
+#   run_script "unique_nns" "ppo_noun60_5_seed2" "/step_" "$i"
+# done
+
+# for i in $(seq 50 50 950)
+# do
+#   run_script "unique_nns" "ppo_noun60_5_seed1" "/step_" "$i"
+# done
+
 export CUDA_VISIBLE_DEVICES=2
-# run_script "math" "ppo_1bbig_128_8" "/step_" 25
+MLEN=50
+# for i in $(seq 24 24 480)
+# do
+#   run_script "unique_nns" "ppo_normppormbaseunn" "/step_" "$i"
+# done
+
+# for i in $(seq 24 24 480)
+# do
+#   run_script "unique_nns" "ppo_opormbaseunn" "/step_" "$i"
+# done
+
+for i in $(seq 25 25 500)
+do
+  run_script "unique_nns" "ppo_unn_selfrewtest" "/step_" "$i"
+done
+
+for i in $(seq 25 25 500)
+do
+  run_script "unique_nns" "ppo_noun60_5_seed1dpover" "/step_" "$i"
+done
+
+DSET="outputs/data/math/mathppoinps200k"
+BASEMODEL="/u/prasanns/research/active-rlhf/outputs/models/math/mathbigdata1b"
+MLEN=75
+# for i in $(seq 25 25 475)
+# do
+#   run_script "math" "ppo_mathselfrewtest" "/step_" "$i"
+# done
+
+# for i in $(seq 25 25 475)
+# do
+#   run_script "math" "ppo_1bbig_128_8_seed3_dpover" "/step_" "$i"
+# done
+
+# export CUDA_VISIBLE_DEVICES=7
+# MLEN=75
+# for i in $(seq 24 24 480)
+# do
+#   run_script "math" "ppo_normppormbasemath" "/step_" "$i"
+# done
+
+# for i in $(seq 24 24 480)
+# do
+#   run_script "math" "ppo_opormbasemath" "/step_" "$i"
+# done
+
+# for i in $(seq 50 50 950)
+# do
+#   run_script "unique_nns" "ppo_noun60_5_seed1" "/step_" "$i"
+# done
+
 # # run_script "math" "ppo_mathattempt2bigf2" "orig" ""
 # run_script "math" "ppo_1bbig_128_8" "/step_" 50
 # run_script "math" "ppo_1bbig_128_8" "/step_" 75
@@ -235,10 +341,6 @@ export CUDA_VISIBLE_DEVICES=2
 # run_script "eurusrm" "ppo_mainalgo_32_2" "/step_" 375
 # run_script "eurusrm" "ppo_mainalgo_32_2" "/step_" 400
 # run_script "eurusrm" "ppo_mainalgo_32_2" "/step_" 425
-
-
-
-
 
 # run_script "eurusrm" "ppo_eurusrmbaseline32save2" "/step_" 25
 # run_script "eurusrm" "ppo_eurusrmbaseline32save2" "/step_" 50
