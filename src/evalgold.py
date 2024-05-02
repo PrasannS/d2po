@@ -5,10 +5,9 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModel
 import torch
 import argparse
 import json
-from rlhfutils.eval_utils import scofile
+# from rlhfutils.eval_utils import scofile
 from nltk import word_tokenize
 from utils.data.prompt_utils import splitter, convert_prompstlye, qaform
-from utils.eval.rewards import get_synth_rewards
 import utils.eval.rewards as rutils
 
 toker = AutoTokenizer.from_pretrained("facebook/opt-125m")
@@ -28,7 +27,7 @@ def sconoundf(df, function, trunc=True):
     # for ins in allins:
     #     print("*****************")
     #     print(ins)
-    rewards = get_synth_rewards(allins, function)
+    rewards = rutils.get_synth_rewards(allins, function)
     means = []
     rets = []
     for i in range(0, len(allins), rlen): 
@@ -41,7 +40,7 @@ def sconoundf(df, function, trunc=True):
 def tokenproc(inp, lim=True, function=None):
     #print(inp)
     #print(function)
-    if function=="math":
+    if function=="math" or function=="contrastivedistill":
         return inp
     else:
         inp = convert_prompstlye(inp, qaform)
@@ -87,6 +86,7 @@ if __name__=="__main__":
     
     # NOTE special case for distillation reward
     if "contrastivedistill" in args.gfunct:
+        print("cdist case")
         rutils.likemod = AutoModelForCausalLM.from_pretrained("facebook/opt-1.3b", device_map=0, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2").eval()
         rutils.liketok = AutoTokenizer.from_pretrained("facebook/opt-1.3b")
         rutils.slikemod = AutoModelForCausalLM.from_pretrained("facebook/opt-125m", device_map=0, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2").eval()

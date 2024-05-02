@@ -111,10 +111,10 @@ def plot_methods(methods, steps=2000, fname="output.pdf", setname="Experiment Re
             plt.scatter(point[0], point[1], s=250, color=color, marker='*', edgecolor='black', label=label)
 
     # Enhancements for clarity and aesthetics
-    plt.title(setname, fontsize=26, fontweight='bold')
-    plt.xlabel(xlabel, fontsize=20)
-    plt.ylabel(ylabel, fontsize=20)
-    plt.legend(prop={'size': 16}, loc='best')
+    plt.title(setname, fontsize=30, fontweight='bold')
+    plt.xlabel(xlabel, fontsize=26)
+    plt.ylabel(ylabel, fontsize=26)
+    plt.legend(prop={'size': 22}, loc='best')
     plt.tight_layout()
     
     # Saving the figure in high-quality

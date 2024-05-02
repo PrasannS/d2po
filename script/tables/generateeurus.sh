@@ -26,19 +26,29 @@ run_script() {
 
 
 DSET="outputs/data/math/mathppoinps200k"
-BASEMODEL="/u/prasanns/research/active-rlhf/outputs/models/math/mathbigdata1b"
+DSET="outputs/data/contrastivedistill/wikionpolicyprompts"
+
+# BASEMODEL="/u/prasanns/research/active-rlhf/outputs/models/math/mathbigdata1b"
+BASEMODEL="/u/prasanns/research/active-rlhf/outputs/models/contrastivedistill/smalldpo"
 # DSET="outputs/data/paraphrase/parappoinps"
 # BASEMODEL="facebook/opt-125m"
 TOP=200
 BSIZE=1
-MLEN=75
+MLEN=50
 GBATCH=32
 export CUDA_VISIBLE_DEVICES=1
-# /u/prasanns/research/active-rlhf/outputs/checkpoints/math/offp50k_mathoffv1_dpo
-# for i in $(seq 12 12 240)
+
+# for i in $(seq 100 100 2000)
 # do
-#   run_script "math" "ppo_opobase8mathseed3" "/step_" "$i"
+#   run_script "contrastivedistill" "ppo_rand_cdist_10_5_activefixseed3" "/step_" "$i"
 # done
+
+# export CUDA_VISIBLE_DEVICES=2
+
+for i in $(seq 100 100 2000)
+do
+  run_script "contrastivedistill" "ppo_rand_cdist_10_5_activefixseed2" "/step_" "$i"
+done
 
 # for i in $(seq 12 12 240)
 # do

@@ -72,44 +72,45 @@ export SEED=3
 export CUDA_VISIBLE_DEVICES=5
 export UEPOCHS=4
 
-# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "math" "" "mathwarm1b" "1bbig_128_8_seed3_newrm" 5005 & 
-# # Other commands
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "http://127.0.0.1:5005/train" 29522 "1bbig_128_8_seed3_newrm"
-jobs
-pkill -f "1bbig_128_8_seed3_newrm"
-jobs
-export DPOBATCHSIZE=8
+# # # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/newupdateapi.sh "math" "" "mathwarm1b" "1bbig_128_8_seed3_newrm" 5005 & 
+# # # Other commands
+# export CUDA_VISIBLE_DEVICES=6,7
+# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "http://127.0.0.1:5005/train" 29522 "1bbig_128_8_seed3_newrm"
+# jobs
+# pkill -f "1bbig_128_8_seed3_newrm"
+# jobs
+export DPOBATCHSIZE=16
 
-export MBSIZE=8
-export GBSIZE=8
+export MBSIZE=16
+export GBSIZE=16
 
 export UEPOCHS=8
 
-export SAMPN=$((32*32))
-export RELABELS=$((32*4))
-export CUDA_VISIBLE_DEVICES=5
-# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "math" "" "mathwarm1b" "1bbig_32_4_seed3_newrm" 5005 & 
-# # Other commands
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "http://127.0.0.1:5005/train" 29522 "1bbig_32_4_seed3_newrm"
-jobs
-pkill -f "1bbig_32_4_seed3_newrm"
-jobs
+# export SAMPN=$((32*32))
+# export RELABELS=$((32*4))
+# export CUDA_VISIBLE_DEVICES=5
+# # # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/newupdateapi.sh "math" "" "mathwarm1b" "1bbig_32_4_seed3_newrm" 5005 & 
+# # # Other commands
+# export CUDA_VISIBLE_DEVICES=6,7
+# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "http://127.0.0.1:5005/train" 29522 "1bbig_32_4_seed3_newrm"
+# jobs
+# pkill -f "1bbig_32_4_seed3_newrm"
+# jobs
+# export PPOUPDATES=2
 
-export SAMPN=$((60))
-export RELABELS=$((5))
-export CUDA_VISIBLE_DEVICES=5
-# # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
-nohup sh script/newupdateapi.sh "math" "" "mathwarm1b" "1bbig_60_5_seed3_newrm" 5005 & 
-# # Other commands
-export CUDA_VISIBLE_DEVICES=6,7
-sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "http://127.0.0.1:5005/train" 29522 "1bbig_60_5_seed3_newrm"
-jobs
-pkill -f "1bbig_60_5_seed3_newrm"
-jobs
+# export SAMPN=$((128))
+# export RELABELS=$((8))
+# export CUDA_VISIBLE_DEVICES=5
+# # # noupdateapi "bagofwords" "bowsynth50knozeros" "bowtiny_rm" "reprodtest" 5000
+# nohup sh script/newupdateapi.sh "math" "" "mathwarm1b" "1bbig_60_5_seed3_newrmlog" 5005 & 
+# # # Other commands
+# export CUDA_VISIBLE_DEVICES=6,7
+# sh script/dpoplus_script.sh "math" "outputs/data/math/mathppoinps200k" "http://127.0.0.1:5005/train" 29522 "1bbig_60_5_seed3_newrmlog"
+# jobs
+# pkill -f "1bbig_60_5_seed3_newrmlog"
+# jobs
 
 # export CUDA_VISIBLE_DEVICES=0
 # export SEED=4
@@ -120,15 +121,30 @@ jobs
 # jobs
 # pkill -f "1bbig_128_8_seed4"
 # jobs
-
-export STEPS=1000
+export PPOUPDATES=1
+export STEPS=2000
 export DPOBATCHSIZE=8
 export MBSIZE=8
 export GBSIZE=8
 export BASEMODEL="facebook/opt-125m"
 export MLEN=50
-export SAMPN=$((50))
+
+export GREWARD="bagofwords"
+export SAMPN=$((64))
 export RELABELS=$((5))
+export CUDA_VISIBLE_DEVICES=0
+export SEED=3
+# nohup sh script/newupdateapi.sh "bagofwords" "" "bowtiny_rm" "bow60_5_seed3log" 5012 & 
+# # # Other commands
+# export CUDA_VISIBLE_DEVICES=1,3
+# sh script/dpoplus_script.sh "bagofwords" "ultra" "http://127.0.0.1:5012/train" 29548 "bow60_5_seed3log"
+# jobs
+# pkill -f "bow60_5_seed3log"
+# jobs
+
+export PPOUPDATES=4
+# export SAMPN=$((50))
+# export RELABELS=$((5))
 export GREWARD="unique_nns"
 
 # export CUDA_VISIBLE_DEVICES=1
@@ -140,17 +156,19 @@ export GREWARD="unique_nns"
 # jobs
 # pkill -f "noun25_5_seed4"
 # jobs
-# export SAMPN=$((60))
-# export RELABELS=$((5))
-# export CUDA_VISIBLE_DEVICES=5
-# export SEED=1
-# nohup sh script/newupdateapi.sh "unique_nns" "" "newtiny_rm" "noun60_5_seed1" 5012 & 
+export SAMPN=$((60))
+export RELABELS=$((5))
+export CUDA_VISIBLE_DEVICES=0
+# export SEED=3
+# nohup sh script/newupdateapi.sh "unique_nns" "" "newtiny_rm" "noun60_5_seed3log" 5012 & 
 # # # Other commands
-# export CUDA_VISIBLE_DEVICES=6,7
-# sh script/dpoplus_script.sh "unique_nns" "ultra" "http://127.0.0.1:5012/train" 29548 "noun60_5_seed1"
+# export CUDA_VISIBLE_DEVICES=1,3
+# sh script/dpoplus_script.sh "unique_nns" "ultra" "http://127.0.0.1:5012/train" 29548 "noun60_5_seed3log"
 # jobs
-# pkill -f "noun60_5_seed1"
+# pkill -f "noun60_5_seed3log"
 # jobs
+
+
 # export CUDA_VISIBLE_DEVICES=1
 # export SEED=5
 # nohup sh script/newupdateapi.sh "unique_nns" "" "tiny_rm" "noun40_28_seed5" 5005 & 

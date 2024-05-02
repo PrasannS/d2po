@@ -58,7 +58,7 @@ def load_dset(script_args, dset, topval, bottom=0):
         eval_set = eval_set.map(lambda ex: {'query':ifunct(ex['instruction'], "")}, num_proc=10)
         return eval_set
     else: 
-        if "math" in dset: 
+        if "math" in dset or "contrastive" in dset: 
             ifunct = noadj
         # we're doing a custom setup instead
         # TODO will need custom logic if we don't want to traintestsplit things
