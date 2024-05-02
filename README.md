@@ -65,6 +65,19 @@ python src/adapter.py \
     --base_model_name="{PATH_TO_SFT_MODEL}" \
     --output_name="{REWARD_MODEL_NEW_PATH}"
 ```
+
+## DPO
+
+We include the generic script for training with DPO:
+
+You can run it as follows (make sure you have your preference data / held out set in outputs/data/{goldfunction}/): 
+```
+export CUDA_VISIBLE_DEVICES=0
+export BASEMODEL={starting point reference / SFT model}
+export BETA=0.05
+sh script/train_dpo.sh {gold reward id} {train dataset (same format as RM)} {eval dataset (same format as RM)} {run name tag} {process id}
+
+```
     
 ## Training with RLHF 
 
@@ -97,44 +110,103 @@ RM name should be set to either your reward model in outputs/models/{gold functi
 
 You can check out src/utils/args/ppo_args.py for lots of other hyperparams / implemented configurations if you're curious. 
 
+## D2PO
+
+If you want to run D2PO, the script looks a bit more complicated: 
+
+```
+export CFG=src/configs/ppo_2gpu.yaml
+export SUPDATES=10000000
+export SEED={seed}
+export KEEPLONG={min length, usually doesn't affect anything}
+export MLEN={max length, set to 50 for most synth settings, 256 on realistic}
+export BASEMODEL={starting SFT model (can use a DPO-based model if you want)}
+# how many epochs per policy batch (try increasing to tune hyperparams on new settings)
+export PPOUPDATES=1
+# batch size per process
+export DPOBATCHSIZE=32
+# mini batch size (can reduce to fit things on GPU)
+export MBSIZE=32
+# generation batch size (can reduce to fit things on GPU)
+export GBSIZE=32
+# train steps (in terms of modified PPOTrainer)
+export STEPS=2000
+
+# D2PO specific hparams
+export ATYPE={conf/rand} # for confidence vs random sampling
+export APBSIZE=16 {how many examples for RM to take in per batch}
+export GREWARD={gold reward name}
+export ULR=1e-4 {RM learning rate}
+export UEPOCHS=4 {how many times RM updates on each amount of data}
+export SFREQ=25 {checkpoint frequency}
+# main hyperparams
+export SAMPN=$((256)) # how many policy preferences (*2) before collecting relabels
+export RELABELS=$((16)) # how many gold preferences to get whenever we hit SAMPN rollouts
+
+# start API with D2PO RM updating live
+nohup sh script/newupdateapi.sh "" {starting rm name (in outputs/models/{gfunct})} {job name tag} 5007 &
+
+# set GPUs 
+export CUDA_VISIBLE_DEVICES=0,1
+sh script/dpoplus_script.sh {gold reward function} {path to prompt data, can also use "ultra"} "http://127.0.0.1:5007/train" {unique process ID} {run name tag}
+
+# kill api at the end otherwise it runs forever
+jobs
+pkill -f {run name tag}
+jobs
+```
+
+See different hyperparameters and options in src/utils/args/api.py to try different configurations out. 
+
 ## Evaluation
 
-Once you have your desired PPO checkpoint and reward model, you can do inference to get evaluation results. If you want to use the OpenAI API-based AlpacaFarm evals, you'll need to put an OpenAI API key in secret/openaikey.txt, otherwise, that isn't necessary. 
-
-First, you need to generate a set of outputs from the PPO checkpoint: 
+Once you have your desired PPO checkpoint, you can do inference to get evaluation results (gold reward): 
 
 ```
-export CUDA_VISIBLE_DEVICES=0
-python -u generate_outs.py \
-    "{SFT_MODEL}" \
-    {"webgpt", "rlcd", "stack"} \
-    "{PATH_TO_SAVE_CHECKPOINT}/step_{PPO_CHECKPOINT_STEP}" \
-    "{OUTPUT_NAME}" \
-    0 500  \
-    {SAMPLES_PER_PROMPT}
+# Define a function to run the script with different inputs
+run_script() {
+    # NOTE that we need to feed things in a specific format
+    CKPT_FILE="outputs/checkpoints/${1}/${2}${3}${4}"
+    OUTPUT_DIR="outputs/results/genouts/${1}/${2}${4}"
+    
+    python -u src/eval/generate_outs.py \
+        --basemodel="$BASEMODEL" \
+        --dset="$DSET" \
+        --ckname="$CKPT_FILE" \
+        --fname="$OUTPUT_DIR" \
+        --bottom=$BOTTOM --top=$TOP  \
+        --bsize=$BSIZE \
+        --maxlen=$MLEN \
+        --genbatch=$GBATCH
+
+    python -u src/evalgold.py  --fname="${OUTPUT_DIR}.jsonl" --gfunct="${1}"
+}
+
+BOTTOM=0
+TOP=200 # {which examples from held out set to use}
+MLEN=50 # {max length}
+BSIZE=1 # {how many outputs per input}
+# held out dataset
+DSET={path to held out eval set}
+
+BASEMODEL={path to base model used as starting point}
+GBATCH=32 # {batch size}
+
+export CUDA_VISIBLE_DEVICES=1
+# generate over many checkpoints
+for i in $(seq 100 100 2000)
+do
+  run_script {gold reward function} "ppo_{run name tag}" "/step_" "$i"
+done
+
 ```
 
-0 and 500 are the bottom and top of the eval dataset subset that you want to do eval with (note that seeds are fixed for reproducibility). Samples_per_prompt can be set to 1 in most cases. This will generate a file generated_{OUTPUT_NAME}.jsonl containing inputs and outputs for a fixed prompt set from the desired generation model with default decoding hyperparameters. You can set the path parameter to just "orig" if you want to generate from just the SFT model. 
-
-Once you have your generated output files, you can follow eval/simulated_prefs.ipynb for simulated preference eval. If you want to score the outputs with your original reward model, you can do so by running: 
-
-```
-python -u rmsco_outs.py \
-    --rmname="{PATH_TO_RM}" \
-    --inpf="{GENERATION_FILE}" \
-    --device {GPU_ID} \
-    --lim {TOP_INDEX_TO_SCORE} \
-    --shuffle 0
-```
-
-Which you can then use to reproduce correlation numbers and reward numbers (see eval/measure_intrinsic.ipynb). 
+This will generate output files with gold reward scores that you can then calculate evaluation metrics over (e.g. mean gold reward). 
 
 ## Coming Soon!
 
-- We plan on releasing trained models, as well as more scripts to make things easier to run. 
-- Additional Follow-Up Experiments
-- Blog Post with more analysis on the paper
-- 
+- We plan on releasing trained models, as well as cleaning up scripts further to make things easier to run.
+
 ## Citation 
 
 {coming soon}
