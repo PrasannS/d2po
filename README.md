@@ -18,40 +18,49 @@ cd ..
 ```
 
 ## Setting up Data
+We construct datasets for our different preference tasks for RM and policy training. We plan to release files with our used datasets in the near future, however if you want to apply our code to a custom task: 
+- for preferences : you can simply create a huggingface dataset with row format of "question", "response_j" (for preferred) and "response_k" (for dispreferred output)
+    - not used in the work but you can add a "magnitude" row for better RMs if you have access to those (will need to use the right flag in training) 
+- for rollouts : you can simply create a huggingface dataset with rows that contain the row "question"
+- for creating things from scratch:
+    - you can take this starting dataset: https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized (or some other one of your choosing), and rescore pairs with our different gold functions using the get_synth_rewards function in src/eval/rewards.py
 
 ## SFT Models
+We use [TULU-2-7B](https://huggingface.co/allenai/tulu-2-7b)  for our realisitic experiments, a fine-tuned [OPT-1.3b](https://huggingface.co/facebook/opt-1.3b) on our math experiments, and normal [OPT-125m](https://huggingface.co/facebook/opt-125m) for all other experiments. 
 
 ## Training a Reward Model 
 
-We include the generic script for training a reward model with our code (we handle preprocessing for the different datasets) in scripts/train_rm.py.
+We include the generic script for training a reward model:
 
-You can run it as follows: 
+You can run it as follows (make sure you have your preference data / held out set in outputs/data/{goldfunction}/): 
 ```
 # make sure to set to number of GPUs of your choice
 export CUDA_VISIBLE_DEVICES=0,1
+# some default hyperparams
+export LR=1e-4
+export NOLORA=False
+export REINIT=False
+export LTYPE="normal"
+export EVFIRST=0
+export BSIZE=2
+# run script
+export BASEMODEL={path to SFT model}
 
-torchrun --nnodes 1  --nproc_per_node 2 --master_port=12335 train_rm.py \
-    --model_name={PATH_TO_SFT_MODEL} \
-    --output_dir={PATH_TO_SAVE_CHECKPOINTS} \
-    --dataset={"wgpt", "rlcd", "stack"} \
-    --rand_ratio=0 \
-    --balance_len=1 \
-    --num_train_epochs=2 \
-    --carto_file={PATH_TO_TRUNCATED_INDICES}
+sh script/train_rm.sh {gold function} {dataset file name} {eval set name} {process id, can just be 12450} {run name tag}
 ```
 
-The R-DA data augmentation can be reproduced with setting rand_ratio=0.25, length balancing with balance_len=1 (0 for default).
-This code will generate a carto_outs folder with a file containing training dynamics statistics. If you save a pandas set with indices
-for the data you want to keep (see eval/examine_dcarto.ipynb for how to set up truncation), you can do the confidence-based truncation. 
+Some gold functions are: 
+- bagofwords: word collector
+- unique_nns: unique nouns
+- contrastivedistill: contrastive distill
+- (careful, this costs money) ultrafeedbackgold: gpt-4 ultrafeedback
+- eurusrm: eurus rm
+- math: math
+- more in rewards.py, can define additional ones straightforwardly as well
 
-You can adjust nproc_per_node and CUDA_VISIBLE_DEVICES to run with more or less GPUs. You'll need to change master_port to run 
-multiple jobs at once. It's recommended to run jobs using nohup and in a screen session to prevent timeout issues.
-(more hyperparams in rlhf_utils/rlhf_utils/rmcode.py). 
-
-Once training is done, select the checkpoint with highest eval accuracy shown in logs before it stops growing, and do the 
-following to merge the peft adapter. 
+Once you have a checkpoint that you're happy with, you can merge it (put it in outputs/models/{gold reward name})
 ```
-python scripts/merge_peft_adapter.py \
+python src/adapter.py \
     --adapter_model_name="{PATH_TO_SAVE_CHECKPOINTS}/checkpoint_{BEST_CHECKPOINT}" \
     --base_model_name="{PATH_TO_SFT_MODEL}" \
     --output_name="{REWARD_MODEL_NEW_PATH}"
@@ -59,29 +68,34 @@ python scripts/merge_peft_adapter.py \
     
 ## Training with RLHF 
 
-Once you have a reward model, you can then do PPO training with the following script: 
+If you want to do normal training (OPO with a gold function or a static reward model), it's pretty easy from there: 
 
 ```
+export CFG=src/configs/ppo_2gpu.yaml
+export SUPDATES=10000000
+export SEED={seed}
+export KEEPLONG={min length, usually doesn't affect anything}
+export MLEN={max length, set to 50 for most synth settings, 256 on realistic}
+export BASEMODEL={starting SFT model (can use a DPO-based model if you want)}
+# how many epochs per policy batch (try increasing to tune hyperparams on new settings)
+export PPOUPDATES=1
+# batch size per process
+export DPOBATCHSIZE=32
+# mini batch size (can reduce to fit things on GPU)
+export MBSIZE=32
+# generation batch size (can reduce to fit things on GPU)
+export GBSIZE=32
+# train steps (in terms of modified PPOTrainer)
+export STEPS=2000
+
+# set GPUs 
 export CUDA_VISIBLE_DEVICES=0,1
-accelerate launch --multi_gpu --config_file=default_config.yaml --main_process_port=29518 \
-    --num_machines 1  \
-    --num_processes 2 \
-    train_rlhf.py --log_with=wandb \
-    --model_name={PATH_TO_SFT_MODEL} \
-    --dataset_name={"wgpt", "stack", "rlcd"} \
-    --reward_model_name={PATH_TO_MERGED_REWARD_MODEL} \
-    --adafactor=False \
-    --save_freq=25 \
-    --output_max_length=156 --batch_size=32 \
-    --gradient_accumulation_steps=1 \
-    --ppo_epochs=1 --seed=0 --learning_rate=1.4e-5 \
-    --early_stopping=False --output_dir={PATH_TO_SAVE_CHECKPOINTS} \
-    --init_kl_coef=0.04 --steps=1000 
+sh script/dpoplus_script.sh {gold reward function} {path to prompt data, can also use "ultra"} {RM name} {unique process ID} {run name tag}
 ```
 
-For reward scaling, you can set ```--scale_reward=1```, for length omission do ```--omit_long=1```, for length penalty do ```--len_penalty=1```. 
+RM name should be set to either your reward model in outputs/models/{gold function name} for a static RM, you can also set it to "function{gold function name}" if you want to do OPO with gold. 
 
-For doing length-only optimization ```--len_only={N}```. Usually this will take 200 steps (~16 hours to converge) on 2 GPUs. More hyperparams in rlhfutils/rlhfutils/rl_utils.py. 
+You can check out src/utils/args/ppo_args.py for lots of other hyperparams / implemented configurations if you're curious. 
 
 ## Evaluation
 
