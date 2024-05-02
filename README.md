@@ -2,8 +2,6 @@
 
 This repo contains code and instructions for reproducing experiments in the paper "D2PO: Discriminator-Guided DPO with Response Evaluation Models", by Prasann Singhal, Nathan Lambert, Scott Niekum, Tanya Goyal, and Greg Durrett. We propose a new data-efficient approach for optimizing online with preference sources.  
 
-NOTE: this readme is a work in progress, this message should be gone in a couple of days with an updated readme soon. 
-
 ## Installation
 
 First make sure to set up an environment with Python 3.10, you can then get the necessary installations with 
@@ -80,6 +78,14 @@ sh script/train_dpo.sh {gold reward id} {train dataset (same format as RM)} {eva
 ```
     
 ## Training with RLHF 
+
+**HACK**
+Once you're done installing things: 
+
+1. You'll want to navigate to the source code of your TRL install, and override trainer/ppo_trainer.py with the code in utils/misc/dpoplus_trainer.py
+2. Do the same with ppo_config.py, replacing it with utils/misc/config_ppo.py
+
+This will setup OPO code and some other changes to TRL source code in order to get our approach up and running. We plan to fix this with monkey-patching in the near future. 
 
 If you want to do normal training (OPO with a gold function or a static reward model), it's pretty easy from there: 
 
@@ -205,7 +211,7 @@ This will generate output files with gold reward scores that you can then calcul
 
 ## Coming Soon!
 
-- We plan on releasing trained models, as well as cleaning up scripts further to make things easier to run.
+- We plan on releasing trained models, as well as cleaning up code and scripts further to make things easier to run.
 
 ## Citation 
 
