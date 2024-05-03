@@ -16,7 +16,7 @@ cd ..
 ```
 
 ## Setting up Data
-We construct datasets for our different preference tasks for RM and policy training. We plan to release files with our used datasets in the near future, however if you want to apply our code to a custom task: 
+We construct datasets for our different preference tasks for RM and policy training. You can refer to [this link](https://huggingface.co/collections/PrasannSinghal/d2po-synthetic-example-preference-data-663458aaa41adb3433902aae) to download synthetic preference and prompt datasets on our tasks (make sure to store files in the outputs/data/{gold reward name} folder for use with our scripts), however if you want to apply our code to a custom task: 
 - for preferences : you can simply create a huggingface dataset with row format of "question", "response_j" (for preferred) and "response_k" (for dispreferred output)
     - not used in the work but you can add a "magnitude" row for better RMs if you have access to those (will need to use the right flag in training) 
 - for rollouts : you can simply create a huggingface dataset with rows that contain the row "question"
