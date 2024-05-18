@@ -24,48 +24,22 @@ run_script() {
     python -u src/evalgold.py  --fname="${OUTPUT_DIR}.jsonl" --gfunct="${1}"
 }
 
-
-DSET="outputs/data/math/mathppoinps200k"
+# held out dataset
 DSET="outputs/data/contrastivedistill/wikionpolicyprompts"
-
-# BASEMODEL="/u/prasanns/research/active-rlhf/outputs/models/math/mathbigdata1b"
 BASEMODEL="/u/prasanns/research/active-rlhf/outputs/models/contrastivedistill/smalldpo"
-# DSET="outputs/data/paraphrase/parappoinps"
-# BASEMODEL="facebook/opt-125m"
+
+
 TOP=200
 BSIZE=1
 MLEN=50
 GBATCH=32
 export CUDA_VISIBLE_DEVICES=1
 
-# for i in $(seq 100 100 2000)
-# do
-#   run_script "contrastivedistill" "ppo_rand_cdist_10_5_activefixseed3" "/step_" "$i"
-# done
-
-# export CUDA_VISIBLE_DEVICES=2
-
 for i in $(seq 100 100 2000)
 do
   run_script "contrastivedistill" "ppo_rand_cdist_10_5_activefixseed2" "/step_" "$i"
 done
 
-# for i in $(seq 12 12 240)
-# do
-#   run_script "math" "ppo_opobase8mathseed4" "/step_" "$i"
-# done
-# export CUDA_VISIBLE_DEVICES=2
-# # export CUDA_VISIBLE_DEVICES=1
-
-# for i in $(seq 25 25 475)
-# do
-#   run_script "math" "ppo_1bbig_128_8_seed3" "/step_" "$i"
-# done
-
-# for i in $(seq 25 25 475)
-# do
-#   run_script "math" "ppo_1bbig_128_8_seed4" "/step_" "$i"
-# done
 
 ### Done with math auto-gens, now do nouns
 export CUDA_VISIBLE_DEVICES=6
