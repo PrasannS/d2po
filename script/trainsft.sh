@@ -2,7 +2,7 @@
 sftrun() {
     # NOTE that we need to feed things in a specific format    
 
-    python -u src/trainsft.py \
+    accelerate launch --multi_gpu --num_processes=2 src/trainsft.py \
         --dataset_name="outputs/data/${1}/${2}" \
         --output_dir="checkpoints/${1}/${2}_sft_${4}" \
         --save_steps=4000 \
@@ -18,6 +18,6 @@ sftrun() {
 # export CUDA_VISIBLE_DEVICES=2
 # sftrun "math" 'easy2_100k' "facebook/opt-125m"
 
-export CUDA_VISIBLE_DEVICES=2
-sftrun "math" 'mathsfthuge' "facebook/opt-1.3b" "big"
+export CUDA_VISIBLE_DEVICES=1,2
+sftrun "math" 'mrandom500k' "facebook/opt-1.3b" "randbig"
 # sftrun "math" 'mathsfthuge' "facebook/opt-125m"

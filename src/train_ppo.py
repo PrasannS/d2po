@@ -79,7 +79,7 @@ else:
         mdatatmp = ['sol_rows', 'response_j']
     elif "distil" in script_args.dataset_name or "math" in script_args.dataset_name: 
         pftmp = 'onlyans'
-    if "tulu" in script_args.model_name: 
+    if "tulu" in script_args.model_name:
         print('using TULU template')
         pftmp = 'tulu'
         # mdatatmp = ['response_k', 'response_j']
