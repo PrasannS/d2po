@@ -19,9 +19,9 @@
 #     --output_name="outputs/models/math/mathbig40koff_rm"
 
 python src/merge_adapter.py \
-    --adapter_model_name="/u/prasanns/research/active-rlhf/outputs/checkpoints/unique_nns/fullnpref_bigrmnew40k_rm/checkpoint-6800" \
-    --base_model_name="facebook/opt-125m" \
-    --output_name="outputs/models/unique_nns/newbigrm"
+    --adapter_model_name="/u/prasanns/research/prefstudy/d2po/checkpoints/math/mrandom500k_sft_randbig/checkpoint-12000" \
+    --base_model_name="facebook/opt-1.3b" \
+    --output_name="outputs/models/math/randbigsft"
 
 # python scripts/merge_peft_adapter.py \
 #     --adapter_model_name="/u/prasanns/research/rlhf-length-biases/checkpoints/bagofwords/3kprefs_smalldpo_dpo/checkpoint-500" \

@@ -7,17 +7,21 @@ sftrun() {
         --output_dir="checkpoints/${1}/${2}_sft_${4}" \
         --save_steps=4000 \
         --num_train_epochs=1 \
-        --learning_rate=1e-5 \
+        --learning_rate=5e-5 \
         --model_name=${3} \
-        --per_device_train_batch_size=16 \
-        --per_device_eval_batch_size=16 \
-        --warmup_steps=50 \
+        --per_device_train_batch_size=$BATCHSIZE \
+        --per_device_eval_batch_size=$BATCHSIZE \
+        --warmup_steps=10 \
         --logging_steps=10
 }
 
 # export CUDA_VISIBLE_DEVICES=2
 # sftrun "math" 'easy2_100k' "facebook/opt-125m"
+# BATCHSIZE=16
+BATCHSIZE=2
+export CUDA_VISIBLE_DEVICES=6,7
+# sftrun "math" 'mbestofnsft' "outputs/models/math/randbigsft" "bonsft"
+# sftrun "math" 'sftcompsmall' "outputs/models/math/randbigsft" "goldsft"
+sftrun "easymusr" 'easymusrsft' "allenai/tulu-2-7b" "goldsft"
 
-export CUDA_VISIBLE_DEVICES=1,2
-sftrun "math" 'mrandom500k' "facebook/opt-1.3b" "randbig"
 # sftrun "math" 'mathsfthuge' "facebook/opt-125m"

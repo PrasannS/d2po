@@ -34,7 +34,7 @@ def lcustom(dstr, topval, bottom=0, ifunct=adjust_input, dosamp=True):
     DRATIO = 0.99
     if len(orig_dataset)<30000:
         DRATIO = 0.9
-    if dosamp==False: 
+    if dosamp==False or len(orig_dataset)<2000: 
         DRATIO = 0
     eval_dataset = orig_dataset.select(range(int(len(orig_dataset)*DRATIO), len(orig_dataset)))
     def custom2prompt(ex):
